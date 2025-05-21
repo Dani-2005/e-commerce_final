@@ -1,0 +1,14 @@
+const express = require('express');
+const router = express.Router();
+const productController = require('../controllers/productController');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' }); // Configuración de multer para subir archivos
+
+
+
+router.get('/products', productController.getAllProducts);
+router.get('/products/:id', productController.getProductById);
+router.post('/products', upload.single('image'), productController.addProduct);
+
+
+module.exports = router;
