@@ -6,18 +6,19 @@ const app = express();
 const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
-const cors = require('cors');
+//const orderRoutes = require('./routes/orderRoutes');
+const middleware = require('./middleware/authMiddleware');
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Cambia esta línea:
-app.use(express.static(path.join(__dirname, 'view'))); // Ahora sirve archivos desde /backend/view
+app.use(express.static(path.join(__dirname, '..', 'frontend', 'pages')));
 
 app.use('/api/', productRoutes);
 app.use('/api/', authRoutes);
 app.use('/api/', userRoutes);
+//app.use('/api/', orderRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

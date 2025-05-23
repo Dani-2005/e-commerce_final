@@ -21,7 +21,8 @@ async function register(req, res) {
                 res.status(500).json({ error: err.message });
                 return;
             }
-            res.status(201).json({ id: this.lastID });
+            res.status(200).json({ success: true, redirect: '/index.html' });
+
         });
     });
 }
@@ -44,11 +45,27 @@ async function login(req, res) {
             return;
         }
         const token = jwt.sign({ id: row.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.json({ token });
+        //res.json({ token });
+
+        res.status(200).json({ success: true, redirect: '/index.html' });
+
     });
 }
 
+// controllers/authController.js
+
+const showRegister = (req, res) => {
+    res.render('register'); // Renderiza la vista "register.ejs"
+};
+
+const showLogin = (req, res) => {
+    res.render('login'); // Renderiza la vista "login.ejs"
+};
+
+
 module.exports = {
     register,
-    login
+    login,
+    showRegister,
+    showLogin
 };
