@@ -1,0 +1,75 @@
+#loginForm {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px 10px 5px;
+    border-radius: 5px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+#registerForm {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px 10px 5px;
+    border-radius: 5px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#loginForm input {
+    width: 90%;
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid #000000;
+    border-radius: 5px;
+}
+
+#registerForm input {
+    width: 90%;
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid #000000;
+    border-radius: 5px;
+}
+
+#loginForm button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 95%;
+    padding: 10px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+#registerForm button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 95%;
+    padding: 10px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: #ffffff;
+    cursor: pointer;
+}
+#loginForm p {
+    text-align: center;
+    margin-top: 10px;
+}
+
+#registerForm p {
+    text-align: center;
+    margin-top: 10px;
+}
+body {
+    font-family: Arial, sans-serif;
+    background-color: rgb(250, 248, 248);
+}

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Prendas - FakeStore</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 24px;
+    }
+    .productos {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      margin: 32px auto;
+      max-width: 1200px;
+    }
+    .producto {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px #0001;
+      padding: 16px;
+      width: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: box-shadow 0.2s;
+    }
+    .producto:hover {
+      box-shadow: 0 4px 16px #0002;
+    }
+    .producto img {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      margin-bottom: 12px;
+    }
+    .producto h2 {
+      font-size: 1.1em;
+      margin: 0 0 8px 0;
+      text-align: center;
+    }
+    .producto p {
+      margin: 0 0 8px 0;
+      color: #555;
+    }
+    .producto .precio {
+      font-weight: bold;
+      color: #ff5e62;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Prendas de FakeStore</h1>
+  <div class="productos" id="productos"></div>
+  
+  <script>
+    fetch('https://fakestoreapi.com/products')
+      .then(res => res.json())
+      .then(data => {
+        const contenedor = document.getElementById('productos');
+        data.forEach(producto => {
+          const card = document.createElement('div');
+          card.className = 'producto';
+          card.innerHTML = `
+            <img src="${producto.image}" alt="${producto.title}">
+            <h2>${producto.title}</h2>
+            <p>${producto.category}</p>
+            <div class="precio">$${producto.price}</div>
+          `;
+          contenedor.appendChild(card);
+          
+        });
+        
+      });
+  </script>
+  
+</body>
+</html>
