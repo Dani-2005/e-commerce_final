@@ -13,7 +13,7 @@ const middleware = require('./middleware/authMiddleware');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, '..', 'frontend', 'pages')));
+app.use(express.static(path.join(__dirname, 'frontend', 'pages'))); // Serve static files from the frontend directory
 
 app.use('/api/', productRoutes);
 app.use('/api/', authRoutes);
