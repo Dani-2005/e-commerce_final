@@ -1,5 +1,6 @@
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'secreto_de_prueba';
 
+const cors = require('cors');
 const express = require('express');
 const path = require('path'); 
 const app = express();
@@ -9,7 +10,7 @@ const userRoutes = require('./routes/userRoutes');
 //const orderRoutes = require('./routes/orderRoutes');
 const middleware = require('./middleware/authMiddleware');
 
-
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -17,14 +17,31 @@ db.serialize(() => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    // Create the products_category table if it doesn't exist
+    db.run(`CREATE TABLE IF NOT EXISTS products_category (
+      category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE
+    )`);
+
+    // Create the products_subcategory table if it doesn't exist
+    db.run(`CREATE TABLE IF NOT EXISTS products_subcategory (
+      subcategory_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      category_id INTEGER NOT NULL,
+      FOREIGN KEY (category_id) REFERENCES products_category(category_id)
+    )`);
+
     db.run(`CREATE TABLE IF NOT EXISTS products (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       price REAL NOT NULL,
       stock INTEGER NOT NULL,
-      category TEXT NOT NULL,
+      category_id INTEGER,
+      subcategory_id INTEGER,
       image TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (category_id) REFERENCES products_category(category_id),
+      FOREIGN KEY (subcategory_id) REFERENCES products_subcategory(subcategory_id)
     )`);
 
     // Create the carts table if it doesn't exist
