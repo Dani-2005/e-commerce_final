@@ -13,7 +13,7 @@ const middleware = require('./middleware/authMiddleware');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(express.static(path.join(__dirname, 'uploads',))); //
 app.use(express.static(path.join(__dirname, 'frontend', 'pages'))); // Serve static files from the frontend directory
 
 app.use('/api/', productRoutes);
