@@ -1,65 +1,124 @@
-const productosContainer = document.querySelector("#productos");
-const carritoContainer = document.getElementById('carrito');
-const totalContainer = document.getElementById('total');
-let carrito = [];
+const ListProducts = document.querySelector("#productos");
+const cartContainer = document.querySelector(".cart > div"); // El contenedor donde se mostrarán los productos
+const cartTotal = document.querySelector(".cart-total span"); // El span donde se mostrará el total
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (productosContainer) {
-    productosContainer.addEventListener("click", getDataElement);
-  }
-  mostrarCarrito();
+let productsArray = [];
+
+document.addEventListener("DOMContentLoaded", function () {
+  eventListeners();
 });
 
-function getDataElement(e) {
+function eventListeners() {
+  ListProducts.addEventListener("click", getDataElements);
+}
+
+function getDataElements(e) {
   if (e.target.classList.contains("add-cart")) {
-    const productCard = e.target.closest('.producto');
-    const productId = e.target.getAttribute('data-id');
-    const productName = productCard.querySelector('h2').textContent;
-    const productPrice = productCard.querySelector('.precio').textContent.replace('$', '');
-    const productImage = productCard.querySelector('img').src;
-
-    const producto = {
-      id: productId,
-      name: productName,
-      price: parseFloat(productPrice),
-      image: productImage,
-      cantidad: 1
-    };
-
-    addToCart(producto);
+    const elementHtml = e.target.parentElement;
+    selectData(elementHtml);
   }
 }
 
-function addToCart(producto) {
-  const existe = carrito.find(item => item.id === producto.id);
+function selectData(p) {
+  const id = parseInt(p.querySelector("button").getAttribute("data-id"));
+  // Verificamos si el producto ya está en el carrito
+  const exists = productsArray.some(product => product.id === id);
 
-  if (existe) {
-    existe.cantidad++;
+  if (exists) {
+    // Si existe, aumentamos la cantidad
+    productsArray = productsArray.map(product => {
+      if (product.id === id) {
+        product.quantity++;
+        return product;
+      }
+      return product;
+    });
   } else {
-    carrito.push(producto);
+    // Si no existe, lo agregamos
+    const productObj = {
+      img: p.querySelector("img").src,
+      title: p.querySelector("h2").textContent,
+      price: parseFloat(p.querySelector(".precio").textContent.replace("$", "")),
+      id: id,
+      quantity: 1,
+    };
+    productsArray = [...productsArray, productObj];
   }
-
-  mostrarCarrito();
+  renderCart();
 }
 
-function mostrarCarrito() {
-  carritoContainer.innerHTML = ''; // Limpiar contenido previo
+function renderCart() {
+  // Limpiamos el carrito antes de volver a renderizar
+  cartContainer.innerHTML = "";
 
-  carrito.forEach(producto => {
-    const div = document.createElement('div');
-    div.classList.add('producto-carrito');
+  let total = 0;
+
+  productsArray.forEach(product => {
+    const div = document.createElement("div");
+    div.classList.add("cart-item");
     div.innerHTML = `
-      <img src="${producto.image}" alt="${producto.name}" style="width:40px;height:40px;object-fit:contain;margin-right:8px;">
-      <span>${producto.name} (x${producto.cantidad})</span>
-      <span style="margin-left:auto;">$${(producto.price * producto.cantidad).toFixed(2)}</span>
+      <img src="${product.img}" width="50" />
+      <span>${product.title}</span>
+      <span>${product.quantity} x $${product.price.toFixed(2)}</span>
+      <button class="remove-item" data-id="${product.id}">Eliminar</button>
     `;
-    div.style.display = "flex";
-    div.style.alignItems = "center";
-    div.style.gap = "8px";
-    carritoContainer.appendChild(div);
+    cartContainer.appendChild(div);
+
+    total += product.price * product.quantity;
   });
 
-  // Calcular total
-  const total = carrito.reduce((acc, producto) => acc + producto.price * producto.cantidad, 0);
-  totalContainer.textContent = `Total: $${total.toFixed(2)}`;
+  cartTotal.textContent = `$${total.toFixed(2)}`;
+
+  // Agregamos evento para eliminar productos
+  cartContainer.querySelectorAll(".remove-item").forEach(btn => {
+    btn.addEventListener("click", removeItem);
+  });
+}
+
+function removeItem(e) {
+  const id = parseInt(e.target.getAttribute("data-id"));
+  productsArray = productsArray.filter(product => product.id !== id);
+  renderCart();
+}
+
+const openCartBtn = document.getElementById("open-cart");
+const closeCartBtn = document.getElementById("close-cart");
+const cartFloat = document.getElementById("cart-float");
+
+// Mostrar carrito al hacer clic en el botón
+openCartBtn.addEventListener("click", () => {
+  cartFloat.classList.add("active");
+});
+
+// Ocultar carrito al hacer clic en el botón de cerrar
+closeCartBtn.addEventListener("click", () => {
+  cartFloat.classList.remove("active");
+});
+
+// Mostrar carrito automáticamente cuando se agrega un producto
+function selectData(p) {
+  const id = parseInt(p.querySelector("button").getAttribute("data-id"));
+  const exists = productsArray.some(product => product.id === id);
+
+  if (exists) {
+    productsArray = productsArray.map(product => {
+      if (product.id === id) {
+        product.quantity++;
+        return product;
+      }
+      return product;
+    });
+  } else {
+    const productObj = {
+      img: p.querySelector("img").src,
+      title: p.querySelector("h2").textContent,
+      price: parseFloat(p.querySelector(".precio").textContent.replace("$", "")),
+      id: id,
+      quantity: 1,
+    };
+    productsArray = [...productsArray, productObj];
+  }
+  renderCart();
+  // Mostrar el carrito automáticamente
+  cartFloat.classList.add("active");
 }

@@ -1,3 +1,88 @@
+        body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        margin: 0;
+        padding: 0;
+        }
+        #titulo-tienda {
+        text-align: center;
+        padding: 8px;
+        margin: 0;
+        font-size: 2.5em;
+        color: #ffffff;
+        border: 3px solid white;
+        }
+        .slogan {
+        text-align: center;
+        font-size: 1em;
+        text-decoration: underline;
+        font-style: italic;
+        background-color: #A8A8A8;
+        }
+
+        .slogan p {
+            margin: 0;
+            padding: 16px;
+
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin: 0 auto;
+            background-color: #1F1F1F;
+            gap: 300px;
+            padding: 16px;
+        }
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin-left: 70px;
+            border-radius: 48%;
+        }
+
+        .productos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        justify-content: center;
+        margin: 32px auto;
+        max-width: 1200px;
+        }
+        .producto {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px #0001;
+        padding: 16px;
+        width: 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: box-shadow 0.2s;
+        }
+        .producto:hover {
+        box-shadow: 0 4px 16px #0002;
+        }
+        .producto img {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        margin-bottom: 12px;
+        }
+        .producto h2 {
+        font-size: 1.1em;
+        margin: 0 0 8px 0;
+        text-align: center;
+        }
+        .producto p {
+        margin: 0 0 8px 0;
+        color: #555;
+        }
+        .producto .precio {
+        font-weight: bold;
+        color: #ff5e62;
+        font-size: 1.2em;
+        }
+
 #loginForm {
     width: 100%;
     max-width: 500px;
@@ -60,6 +145,38 @@
     color: #ffffff;
     cursor: pointer;
 }
+
+/* Ejemplo simple de CSS */
+.cart {
+  width: 300px;
+  border: 1px solid #ddd;
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+}
+.cart-items {
+  list-style: none;
+  padding: 0;
+}
+.cart-items li {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.cart-total {
+  margin-top: 16px;
+  font-weight: bold;
+  text-align: right;
+}
+.remove-btn {
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+
 #loginForm p {
     text-align: center;
     margin-top: 10px;
@@ -72,4 +189,46 @@
 body {
     font-family: Arial, sans-serif;
     background-color: rgb(250, 248, 248);
+}
+
+.cart-float {
+  display: none; /* Oculto por defecto */
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 250px;
+  height: 100%;
+  background: #fff;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+  padding: 20px;
+  transition: transform 0.3s ease;
+  transform: translateX(100%);
+}
+
+.cart-float.active {
+  display: block;
+  transform: translateX(0);
+}
+
+.close-cart {
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
+
+.cart-btn {
+  position: absolute;
+  top: 20px;
+  right: 50px;
+  z-index: 1100;
+  background: #ff9800;
+  color: #fff;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
