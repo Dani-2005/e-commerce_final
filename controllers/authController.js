@@ -47,7 +47,7 @@ async function login(req, res) {
         const token = jwt.sign({ id: row.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         //res.json({ token });
 
-        res.status(200).json({ success: true, redirect: '/pages/index.html' });
+        res.status(200).json({ success: true, redirect: '/pages/index.html', token });
 
     });
 }

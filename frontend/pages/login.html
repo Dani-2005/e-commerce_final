@@ -28,9 +28,11 @@
         body: JSON.stringify(data)
       });
       const result = await res.json();
-      document.getElementById('result').innerText = JSON.stringify(result);
-      if (res.ok && result.redirect) {
-        window.location.href = result.redirect;
+      if (res.ok && result.token) {
+          document.cookie = `jwt=${result.token}; path=/; max-age=3600`;
+          window.location.href = result.redirect;
+      } else {
+          document.getElementById('result').innerText = result.message;
       }
     });
   </script>

@@ -3,14 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <title>ModaXpress - Ecommerce</title>
+    <style>
+        body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        margin: 0;
+        padding: 0;
+        }
+        #titulo-tienda {
+        text-align: center;
+        padding: 8px;
+        margin: 0;
+        font-size: 2.5em;
+        color: #ffffff;
+        border: 3px solid white;
+        }
+        .slogan {
+        text-align: center;
+        font-size: 1em;
+        text-decoration: underline;
+        font-style: italic;
+        background-color: #A8A8A8;
+        }
 
-    <link rel="stylesheet" href="./css/home.css">
+        .slogan p {
+            margin: 0;
+            padding: 16px;
+
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin: 0 auto;
+            background-color: #1F1F1F;
+            gap: 300px;
+            padding: 16px;
+        }
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin-left: 70px;
+            border-radius: 48%;
+        }
+
+        .productos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        justify-content: center;
+        margin: 32px auto;
+        max-width: 1200px;
+        }
+        .producto {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px #0001;
+        padding: 16px;
+        width: 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: box-shadow 0.2s;
+        }
+        .producto:hover {
+        box-shadow: 0 4px 16px #0002;
+        }
+        .producto img {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        margin-bottom: 12px;
+        }
+        .producto h2 {
+        font-size: 1.1em;
+        margin: 0 0 8px 0;
+        text-align: center;
+        }
+        .producto p {
+        margin: 0 0 8px 0;
+        color: #555;
+        }
+        .producto .precio {
+        font-weight: bold;
+        color: #ff5e62;
+        font-size: 1.2em;
+        }
+    </style>
     </head>
     <body>
     <header>
         <div class="logo-container">
             <img class="logo" src="/uploads/logo modaxpress.jpeg" alt="Logo de la tienda">
         <h1 id="titulo-tienda">ModaXpress</h1>
+        <div id="user-actions">
+            <button id="login-btn" style="display: none;">Iniciar Sesión</button>
+            <button id="register-btn" style="display: none;">Registrarse</button>
+            <button id="logout-btn" style="display: none;">Cerrar Sesión</button>
+        </div>
         </div>
         <div class="slogan">
             <p>Bienvenido a nuestra tienda de moda. ¡Encuentra tu estilo perfecto!</p>
@@ -52,9 +141,46 @@
             });
         })
         .catch(error => console.error('Error al obtener los productos:', error));
+
+        document.addEventListener("DOMContentLoaded", async () => {
+        const loginBtn = document.getElementById("login-btn");
+        const registerBtn = document.getElementById("register-btn");
+        const logoutBtn = document.getElementById("logout-btn");
+
+        // Verificar sesión con cookies (JWT)
+        const cookies = document.cookie.split("; ");
+        const jwtCookie = cookies.find(row => row.startsWith("jwt="));
+
+        if (jwtCookie) {
+            logoutBtn.style.display = "block"; // Si hay token, mostrar botón de cerrar sesión
+        } else {
+            loginBtn.style.display = "block"; 
+            registerBtn.style.display = "block";
+        }
+
+        // Agregar evento de clic para el botón de iniciar sesión
+        loginBtn.addEventListener("click", () => {
+            window.location.href = "login.html"; // Redirigir a la página de inicio de sesión
+        });
+
+        // Agregar evento de clic para el botón de registrarse
+        registerBtn.addEventListener("click", () => {
+            window.location.href = "register.html"; // Redirigir a la página de registro
+        });
+
+        // Agregar evento de clic para el botón de cerrar sesión
+
+        logoutBtn.addEventListener("click", () => {
+            document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            location.reload(); // Recargar para actualizar la interfaz
+        });
+    });
     </script>
     <script
     src = "../js/cart.js">
     </script>
     </body>
     </html>
+
+
+
