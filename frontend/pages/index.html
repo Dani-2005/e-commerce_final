@@ -46,6 +46,24 @@
             border-radius: 48%;
         }
 
+        #user-actions {
+            display: flex;
+            gap: 16px;
+            margin-left: auto;
+        }
+
+        #user-actions button {
+            background-color: white;
+            color: #000;
+            border: none;
+            padding: 5px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #user-actions button:hover {
+            background-color: #A8A8A8;
+        }
         .productos {
         display: flex;
         flex-wrap: wrap;
@@ -95,6 +113,11 @@
         <div class="logo-container">
             <img class="logo" src="/uploads/logo modaxpress.jpeg" alt="Logo de la tienda">
         <h1 id="titulo-tienda">ModaXpress</h1>
+        <div id="user-actions">
+            <button id="login-btn" style="display: none;">Iniciar Sesión</button>
+            <button id="register-btn" style="display: none;">Registrarse</button>
+            <button id="logout-btn" style="display: none;">Cerrar Sesión</button>
+        </div>
         </div>
         <div class="slogan">
             <p>Bienvenido a nuestra tienda de moda. ¡Encuentra tu estilo perfecto!</p>
@@ -128,9 +151,46 @@
             });
         })
         .catch(error => console.error('Error al obtener los productos:', error));
+
+        document.addEventListener("DOMContentLoaded", async () => {
+        const loginBtn = document.getElementById("login-btn");
+        const registerBtn = document.getElementById("register-btn");
+        const logoutBtn = document.getElementById("logout-btn");
+
+        // Verificar sesión con cookies (JWT)
+        const cookies = document.cookie.split("; ");
+        const jwtCookie = cookies.find(row => row.startsWith("jwt="));
+
+        if (jwtCookie) {
+            logoutBtn.style.display = "block"; // Si hay token, mostrar botón de cerrar sesión
+        } else {
+            loginBtn.style.display = "block"; 
+            registerBtn.style.display = "block";
+        }
+
+        // Agregar evento de clic para el botón de iniciar sesión
+        loginBtn.addEventListener("click", () => {
+            window.location.href = "login.html"; // Redirigir a la página de inicio de sesión
+        });
+
+        // Agregar evento de clic para el botón de registrarse
+        registerBtn.addEventListener("click", () => {
+            window.location.href = "register.html"; // Redirigir a la página de registro
+        });
+
+        // Agregar evento de clic para el botón de cerrar sesión
+
+        logoutBtn.addEventListener("click", () => {
+            document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            location.reload(); // Recargar para actualizar la interfaz
+        });
+    });
     </script>
     <script
     src = "../js/cart.js">
     </script>
     </body>
     </html>
+
+
+
