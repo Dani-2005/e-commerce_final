@@ -99,6 +99,12 @@
         <div class="slogan">
             <p>Bienvenido a nuestra tienda de moda. ¡Encuentra tu estilo perfecto!</p>
         </div>
+        <div id="carrito-container">
+  <h2>Carrito de Compras</h2>
+  <div id="carrito"></div>
+  <div id="total"></div>
+</div>
+
     </header>
 
     <div class="productos" id="productos"></div>
@@ -112,16 +118,19 @@
             const card = document.createElement('div');
             card.className = 'producto';
             card.innerHTML = `
-                <img src="${producto.image}" alt="${producto.name}">
+                <img src="/uploads/${producto.image}" alt="${producto.name}">
                 <h2>${producto.name}</h2>
                 <p>${producto.category_name}</p>
                 <div class="precio">$${producto.price}</div>
+                <button class="add-cart" data-id="${producto.product_id}">Agregar al carrito</button>
             `;
             contenedor.appendChild(card);
             });
         })
         .catch(error => console.error('Error al obtener los productos:', error));
     </script>
-    
+    <script
+    src = "../js/cart.js">
+    </script>
     </body>
     </html>
