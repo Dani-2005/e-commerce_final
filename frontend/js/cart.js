@@ -1,6 +1,6 @@
 const ListProducts = document.querySelector("#productos");
-const cartContainer = document.querySelector(".cart > div"); // El contenedor donde se mostrarán los productos
-const cartTotal = document.querySelector(".cart-total span"); // El span donde se mostrará el total
+const cartContainer = document.querySelector(".cart > div"); 
+const cartTotal = document.querySelector(".cart-total span"); 
 
 let productsArray = [];
 
@@ -21,11 +21,10 @@ function getDataElements(e) {
 
 function selectData(p) {
   const id = parseInt(p.querySelector("button").getAttribute("data-id"));
-  // Verificamos si el producto ya está en el carrito
+
   const exists = productsArray.some(product => product.id === id);
 
   if (exists) {
-    // Si existe, aumentamos la cantidad
     productsArray = productsArray.map(product => {
       if (product.id === id) {
         product.quantity++;
