@@ -1,86 +1,127 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Prendas - FakeStore</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 0;
-    }
-    h1 {
-      text-align: center;
-      margin-top: 24px;
-    }
-    .productos {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 24px;
-      justify-content: center;
-      margin: 32px auto;
-      max-width: 1200px;
-    }
-    .producto {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px #0001;
-      padding: 16px;
-      width: 220px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transition: box-shadow 0.2s;
-    }
-    .producto:hover {
-      box-shadow: 0 4px 16px #0002;
-    }
-    .producto img {
-      width: 120px;
-      height: 120px;
-      object-fit: contain;
-      margin-bottom: 12px;
-    }
-    .producto h2 {
-      font-size: 1.1em;
-      margin: 0 0 8px 0;
-      text-align: center;
-    }
-    .producto p {
-      margin: 0 0 8px 0;
-      color: #555;
-    }
-    .producto .precio {
-      font-weight: bold;
-      color: #ff5e62;
-      font-size: 1.2em;
-    }
-  </style>
-</head>
-<body>
-  <h1>Prendas de FakeStore</h1>
-  <div class="productos" id="productos"></div>
-  
-  <script>
-    fetch('http://localhost:3000/api/products')
-      .then(res => res.json())
-      .then(data => {
-        const contenedor = document.getElementById('productos');
-        data.forEach(producto => {
-          const card = document.createElement('div');
-          card.className = 'producto';
-          card.innerHTML = `
-            <img src="${producto.image}" alt="${producto.name}">
-            <h2>${producto.name}</h2>
-            <p>${producto.category_name}</p>
-            <div class="precio">$${producto.price}</div>
-          `;
-          contenedor.appendChild(card);
-        });
-      })
-      .catch(error => console.error('Error al obtener los productos:', error));
-  </script>
-  
-</body>
-</html>
+    <meta charset="UTF-8">
+    <title>ModaXpress - Ecommerce</title>
+    <style>
+        body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        margin: 0;
+        padding: 0;
+        }
+        #titulo-tienda {
+        text-align: center;
+        padding: 8px;
+        margin: 0;
+        font-size: 2.5em;
+        color: #ffffff;
+        border: 3px solid white;
+        }
+        .slogan {
+        text-align: center;
+        font-size: 1em;
+        text-decoration: underline;
+        font-style: italic;
+        background-color: #A8A8A8;
+        }
+
+        .slogan p {
+            margin: 0;
+            padding: 16px;
+
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin: 0 auto;
+            background-color: #1F1F1F;
+            gap: 300px;
+            padding: 16px;
+        }
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin-left: 70px;
+            border-radius: 48%;
+        }
+
+        .productos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        justify-content: center;
+        margin: 32px auto;
+        max-width: 1200px;
+        }
+        .producto {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px #0001;
+        padding: 16px;
+        width: 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: box-shadow 0.2s;
+        }
+        .producto:hover {
+        box-shadow: 0 4px 16px #0002;
+        }
+        .producto img {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        margin-bottom: 12px;
+        }
+        .producto h2 {
+        font-size: 1.1em;
+        margin: 0 0 8px 0;
+        text-align: center;
+        }
+        .producto p {
+        margin: 0 0 8px 0;
+        color: #555;
+        }
+        .producto .precio {
+        font-weight: bold;
+        color: #ff5e62;
+        font-size: 1.2em;
+        }
+    </style>
+    </head>
+    <body>
+    <header>
+        <div class="logo-container">
+            <img class="logo" src="/uploads/logo modaxpress.jpeg" alt="Logo de la tienda">
+        <h1 id="titulo-tienda">ModaXpress</h1>
+        </div>
+        <div class="slogan">
+            <p>Bienvenido a nuestra tienda de moda. ¡Encuentra tu estilo perfecto!</p>
+        </div>
+    </header>
+
+    <div class="productos" id="productos"></div>
+    
+    <script>
+        fetch('http://localhost:3000/api/products')
+        .then(res => res.json())
+        .then(data => {
+            const contenedor = document.getElementById('productos');
+            data.forEach(producto => {
+            const card = document.createElement('div');
+            card.className = 'producto';
+            card.innerHTML = `
+                <img src="${producto.image}" alt="${producto.name}">
+                <h2>${producto.name}</h2>
+                <p>${producto.category_name}</p>
+                <div class="precio">$${producto.price}</div>
+            `;
+            contenedor.appendChild(card);
+            });
+        })
+        .catch(error => console.error('Error al obtener los productos:', error));
+    </script>
+    
+    </body>
+    </html>
