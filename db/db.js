@@ -9,74 +9,87 @@ const db = new sqlite3.Database('db.db', (err) => {
 
 
 db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`);
+  // Usuarios
+  db.run(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`);
 
-    // Create the products_category table if it doesn't exist
-    db.run(`CREATE TABLE IF NOT EXISTS products_category (
-      category_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE
-    )`);
+  // Categorías de productos
+  db.run(`CREATE TABLE IF NOT EXISTS products_category (
+    category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+  )`);
 
-    // Create the products_subcategory table if it doesn't exist
-    db.run(`CREATE TABLE IF NOT EXISTS products_subcategory (
-      subcategory_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE,
-      category_id INTEGER NOT NULL,
-      FOREIGN KEY (category_id) REFERENCES products_category(category_id)
-    )`);
+  // Subcategorías de productos
+  db.run(`CREATE TABLE IF NOT EXISTS products_subcategory (
+    subcategory_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    category_id INTEGER NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES products_category(category_id)
+  )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      price REAL NOT NULL,
-      stock INTEGER NOT NULL,
-      category_id INTEGER,
-      subcategory_id INTEGER,
-      image BLOB,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (category_id) REFERENCES products_category(category_id),
-      FOREIGN KEY (subcategory_id) REFERENCES products_subcategory(subcategory_id)
-    )`);
+  // Productos
+  db.run(`CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    price REAL NOT NULL,
+    stock INTEGER NOT NULL,
+    category_id INTEGER,
+    subcategory_id INTEGER,
+    image BLOB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES products_category(category_id),
+    FOREIGN KEY (subcategory_id) REFERENCES products_subcategory(subcategory_id)
+  )`);
 
-    // Create the carts table if it doesn't exist
-    db.run(`CREATE TABLE IF NOT EXISTS carts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    )`);
+  // Carritos
+  db.run(`CREATE TABLE IF NOT EXISTS carts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    checked_out INTEGER DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
 
-    // Create the cart_items table if it doesn't exist
-    db.run(`CREATE TABLE IF NOT EXISTS cart_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      cart_id INTEGER NOT NULL,
-      product_id INTEGER NOT NULL,
-      quantity INTEGER NOT NULL,
-      FOREIGN KEY (cart_id) REFERENCES carts(id),
-      FOREIGN KEY (product_id) REFERENCES products(id)
-    )`);
-    // Create the orders table if it doesn't exist
-    db.run(`CREATE TABLE IF NOT EXISTS orders (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      total REAL NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    )`);
-    // Create the order_items table if it doesn't exist
-    db.run(`CREATE TABLE IF NOT EXISTS order_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_id INTEGER NOT NULL,
-      product_id INTEGER NOT NULL,
-      quantity INTEGER NOT NULL,
-      FOREIGN KEY (order_id) REFERENCES orders(id),
-      FOREIGN KEY (product_id) REFERENCES products(id)
-    )`)})
+  // Ítems del carrito (ahora con price, name, image)
+  db.run(`CREATE TABLE IF NOT EXISTS cart_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cart_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL,
+    price REAL,
+    name TEXT,
+    image BLOB,
+    FOREIGN KEY (cart_id) REFERENCES carts(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+  )`);
+
+  // Pedidos
+  db.run(`CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    total REAL NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
+
+  // Ítems de los pedidos
+  db.run(`CREATE TABLE IF NOT EXISTS order_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL,
+    price REAL,
+    name TEXT,
+    image BLOB,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+  )`);
+});
 
 module.exports = db;
+

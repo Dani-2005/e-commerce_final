@@ -5,6 +5,7 @@ const cartTotal = document.querySelector(".cart-total span");
 let productsArray = [];
 
 document.addEventListener("DOMContentLoaded", function () {
+  fetchCartFromDb();
   eventListeners();
 });
 
@@ -78,6 +79,7 @@ function removeItem(e) {
   const id = parseInt(e.target.getAttribute("data-id"));
   productsArray = productsArray.filter(product => product.id !== id);
   renderCart();
+  saveDb();
 }
 
 const openCartBtn = document.getElementById("open-cart");
@@ -119,5 +121,69 @@ function selectData(p) {
   }
   renderCart();
   // Mostrar el carrito automáticamente
+  saveDb();
   cartFloat.classList.add("active");
+}
+
+function saveDb() {
+  // Mapea los productos al formato esperado por el backend
+  const productsMapped = productsArray.map(product => ({
+    product_id: product.id,
+    quantity: product.quantity,
+    price: product.price,
+    name: product.title,
+    image: product.img
+  }));
+
+  fetch("http://localhost:3000/api/cart", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(productsMapped),
+  })
+  .then(res => res.json())
+  .then(data => {
+    // Puedes mostrar un mensaje de éxito aquí si quieres
+    console.log("Carrito guardado:", data);
+  })
+  .catch(err => {
+    console.error("Error al guardar el carrito:", err);
+  });
+}
+
+function fetchCartFromDb() {
+  fetch("http://localhost:3000/api/cart", {
+    method: "GET",
+    credentials: "include", // si usas cookies para sesión
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then(res => res.json())
+    .then(data => {
+      // Si tu backend devuelve un array de carritos, toma el último y sus productos
+      if (Array.isArray(data) && data.length > 0) {
+        // Aquí deberías hacer otro fetch para obtener los productos del carrito
+        const cartId = data[data.length - 1].id;
+        fetch(`http://localhost:3000/api/cart/${cartId}/items`, {
+          method: "GET",
+          credentials: "include",
+        })
+          .then(res => res.json())
+          .then(items => {
+            productsArray = items.map(item => ({
+              id: item.product_id,
+              quantity: item.quantity,
+              price: item.price,
+              title: item.name,
+              img: item.image,
+            }));
+            renderCart();
+          });
+      }
+    })
+    .catch(err => {
+      console.error("Error al obtener el carrito:", err);
+    });
 }
