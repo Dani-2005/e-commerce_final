@@ -57,27 +57,42 @@ module.exports = {
 
     // Update product
     updateProduct: (req, res) => {
-        const id = req.params.id;
-        const { name, price, stock, category_id, subcategory_id } = req.body;
-        const image = req.file ? req.file.filename : null;
-        const query = `
+    const id = req.params.id;
+    const { name, price, stock, category_id, subcategory_id } = req.body;
+    const image = req.file ? req.file.filename : null;
+
+    let query, params;
+
+    if (image) {
+        query = `
             UPDATE products SET name = ?, price = ?, stock = ?, category_id = ?, subcategory_id = ?, image = ?
-            WHERE id = ?
+            WHERE product_id = ?
         `;
-        db.run(query, [name, price, stock, category_id, subcategory_id, image, id], function (err) {
-            if (err) {
-                res.status(500).json({ error: err.message });
-                return;
-            }
-            res.json({ updatedID: id });
-        });
-    },
+        params = [name, price, stock, category_id, subcategory_id, image, id];
+    } else {
+        query = `
+            UPDATE products SET name = ?, price = ?, stock = ?, category_id = ?, subcategory_id = ?
+            WHERE product_id = ?
+        `;
+        params = [name, price, stock, category_id, subcategory_id, id];
+    }
+
+    db.run(query, params, function (err) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({ updatedID: id });
+    });
+},
+
 
     // Delete product
     deleteProduct: (req, res) => {
         const id = req.params.id;
-        db.run('DELETE FROM products WHERE id = ?', [id], function(err) {
+        db.run('DELETE FROM products WHERE product_id = ?', [id], function(err) {
             if (err) {
+                console.error(err);
                 res.status(500).json({ error: err.message });
                 return;
             }

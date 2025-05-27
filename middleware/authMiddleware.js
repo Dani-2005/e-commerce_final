@@ -6,14 +6,14 @@ const db = require('../db/db');
 function onlyUser(req, res, next) {
     reviewCookies(req, res, (user) => {
         if (user) return next();
-        return res.redirect('/');
+        return res.redirect('/pages/index.html');
     });
 }
 
 function onlyPublic(req, res, next) {
     reviewCookies(req, res, (user) => {
         if (!user) return next();
-        return res.redirect('/');
+        return res.redirect('/pages/index.html');
     });
 }
 
