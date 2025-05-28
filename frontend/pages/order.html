@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi Orden</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+    th, td { border: 1px solid #ddd; padding: 0.8rem; text-align: left; }
+    th { background: #f2f2f2; }
+    #pagar-btn { padding: 1rem 2rem; background: #1976d2; color: #fff; border: none; border-radius: 4px; font-size: 1.1rem; cursor: pointer; }
+    #mensaje { font-weight: bold; margin-top: 1.5rem; }
+  </style>
+</head>
+<body>
+  <h2>Detalle de tu Orden</h2>
+  <table id="orderTable">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Imagen</th>
+        <th>Cantidad</th>
+        <th>Precio</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Productos de la orden aquí -->
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4" style="text-align:right;"><strong>Total:</strong></td>
+        <td id="totalCell">$0.00</td>
+      </tr>
+    </tfoot>
+  </table>
+  <button id="pagar-btn">Pagar</button>
+  <div id="mensaje"></div>
+
+  <script>
+    // Simulación: obtén la última orden del backend
+    document.addEventListener("DOMContentLoaded", async () => {
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("orderId");
+      if (!orderId) {
+        document.getElementById("mensaje").textContent = "No se encontró ninguna orden para mostrar.";
+        document.getElementById("orderTable").style.display = "none";
+        document.getElementById("pagar-btn").style.display = "none";
+        return;
+}
+      const res = await fetch(`http://localhost:3000/api/orders/${orderId}`, { credentials: "include" });
+      const order = await res.json(); // <-- Agrega esta línea
+
+      let total = 0;
+      const tbody = document.querySelector("#orderTable tbody");
+      tbody.innerHTML = "";
+      order.items.forEach(item => {
+        const subtotal = item.price * item.quantity;
+        total += subtotal;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.name}</td>
+          <td><img src="${item.image}" width="50"></td>
+          <td>${item.quantity}</td>
+          <td>$${item.price.toFixed(2)}</td>
+          <td>$${subtotal.toFixed(2)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById("totalCell").textContent = `$${total.toFixed(2)}`;
+    });
+
+    // Simulación de pago
+    document.getElementById("pagar-btn").onclick = async function() {
+      alert("¡Gracias por su compra!");
+
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("orderId");
+      await fetch(`http://localhost:3000/api/orders/${orderId}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      // Borra el carrito en el frontend y localStorage
+      localStorage.removeItem('cart');
+      if (window.productsArray) window.productsArray = [];
+      
+      document.getElementById("mensaje").textContent = "¡Pago realizado con éxito! Gracias por tu compra.";
+      this.disabled = true;
+      // Opcional: Oculta la tabla de la orden
+      document.getElementById("orderTable").style.display = "none";
+    };
+  </script>
+</body>
+</html>

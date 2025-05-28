@@ -29,6 +29,7 @@
         <div class="cart-total">
             Total: <span></span>
         </div>
+        <button id="checkout-btn">Finalizar compra</button>
         </div>
 
 
@@ -90,6 +91,56 @@
             location.reload(); // Recargar para actualizar la interfaz
         });
     });
+
+    document.addEventListener("DOMContentLoaded", () => {
+  // ...tu código existente...
+
+  // Evento para finalizar compra
+  const checkoutBtn = document.getElementById("checkout-btn");
+  checkoutBtn.addEventListener("click", async () => {
+    // Suponiendo que tienes un array global productsArray con los productos del carrito
+    if (!window.productsArray || productsArray.length === 0) {
+      alert("El carrito está vacío.");
+      return;
+    }
+
+    try {
+      const productsMapped = window.productsArray.map(product => ({
+  product_id: product.id,
+  quantity: product.quantity,
+  price: product.price,
+  name: product.title,
+  image: product.img
+}));
+console.log(productsMapped);
+console.log(productsArray);
+
+const res = await fetch("http://localhost:3000/api/orders", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  credentials: "include",
+
+});
+      console.log(productsArray)
+      const data = await res.json();
+      if (res.ok) {
+        alert("¡Orden creada con éxito!");
+        productsArray = [];
+        renderCart(); // Vacía el carrito en el frontend
+        // Redirige a la página de la orden
+        if (data.orderId) {
+          window.location.href = `order.html?orderId=${data.orderId}`;
+        }
+      } else {
+        alert("Error al crear la orden: " + (data.error || "Intenta de nuevo"));
+      }
+    } catch (err) {
+      alert("Error de conexión al crear la orden.");
+    }
+  });
+});
     </script>
     <script
     src = "../js/cart.js">

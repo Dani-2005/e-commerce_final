@@ -8,6 +8,7 @@ const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 //const orderRoutes = require('./routes/orderRoutes');
 const middleware = require('./middleware/authMiddleware');
 const multer = require('multer');
@@ -22,6 +23,7 @@ app.use('/api/', productRoutes);
 app.use('/api/', authRoutes);
 app.use('/api/', userRoutes);
 app.use('/api/', cartRoutes);
+app.use('/api/', orderRoutes)
 //app.use('/api/', orderRoutes);
 
 app.use((err, req, res, next) => {

@@ -2,7 +2,8 @@ const ListProducts = document.querySelector("#productos");
 const cartContainer = document.querySelector(".cart > div"); 
 const cartTotal = document.querySelector(".cart-total span"); 
 
-let productsArray = [];
+window.productsArray = window.productsArray || [];
+var productsArray = window.productsArray;
 
 document.addEventListener("DOMContentLoaded", function () {
   fetchCartFromDb();
@@ -23,10 +24,10 @@ function getDataElements(e) {
 function selectData(p) {
   const id = parseInt(p.querySelector("button").getAttribute("data-id"));
 
-  const exists = productsArray.some(product => product.id === id);
+  const exists = window.productsArray.some(product => product.id === id);
 
   if (exists) {
-    productsArray = productsArray.map(product => {
+    window.productsArray = window.productsArray.map(product => {
       if (product.id === id) {
         product.quantity++;
         return product;
@@ -42,9 +43,11 @@ function selectData(p) {
       id: id,
       quantity: 1,
     };
-    productsArray = [...productsArray, productObj];
+    window.productsArray = [...window.productsArray, productObj];
   }
   renderCart();
+  saveDb();
+  cartFloat.classList.add("active");
 }
 
 function renderCart() {
@@ -53,7 +56,7 @@ function renderCart() {
 
   let total = 0;
 
-  productsArray.forEach(product => {
+  window.productsArray.forEach(product => {
     const div = document.createElement("div");
     div.classList.add("cart-item");
     div.innerHTML = `
@@ -77,7 +80,7 @@ function renderCart() {
 
 function removeItem(e) {
   const id = parseInt(e.target.getAttribute("data-id"));
-  productsArray = productsArray.filter(product => product.id !== id);
+  window.productsArray = window.productsArray.filter(product => product.id !== id);
   renderCart();
   saveDb();
 }
@@ -96,38 +99,9 @@ closeCartBtn.addEventListener("click", () => {
   cartFloat.classList.remove("active");
 });
 
-// Mostrar carrito automáticamente cuando se agrega un producto
-function selectData(p) {
-  const id = parseInt(p.querySelector("button").getAttribute("data-id"));
-  const exists = productsArray.some(product => product.id === id);
-
-  if (exists) {
-    productsArray = productsArray.map(product => {
-      if (product.id === id) {
-        product.quantity++;
-        return product;
-      }
-      return product;
-    });
-  } else {
-    const productObj = {
-      img: p.querySelector("img").src,
-      title: p.querySelector("h2").textContent,
-      price: parseFloat(p.querySelector(".precio").textContent.replace("$", "")),
-      id: id,
-      quantity: 1,
-    };
-    productsArray = [...productsArray, productObj];
-  }
-  renderCart();
-  // Mostrar el carrito automáticamente
-  saveDb();
-  cartFloat.classList.add("active");
-}
-
 function saveDb() {
   // Mapea los productos al formato esperado por el backend
-  const productsMapped = productsArray.map(product => ({
+  const productsMapped = window.productsArray.map(product => ({
     product_id: product.id,
     quantity: product.quantity,
     price: product.price,
@@ -172,7 +146,7 @@ function fetchCartFromDb() {
         })
           .then(res => res.json())
           .then(items => {
-            productsArray = items.map(item => ({
+            window.productsArray = items.map(item => ({
               id: item.product_id,
               quantity: item.quantity,
               price: item.price,
@@ -185,5 +159,36 @@ function fetchCartFromDb() {
     })
     .catch(err => {
       console.error("Error al obtener el carrito:", err);
+    });
+}
+
+function addOrder() {
+  if (window.productsArray.length === 0) {
+    alert("El carrito está vacío. Agrega productos antes de realizar un pedido.");
+    return;
+  }
+
+  const orderData = {
+    products: window.productsArray,
+  };
+
+  fetch("http://localhost:3000/api/orders", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(orderData),
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("Pedido realizado:", data);
+      // Aquí puedes limpiar el carrito o redirigir al usuario
+      window.productsArray = [];
+      renderCart();
+      alert("Pedido realizado con éxito.");
+    })
+    .catch(err => {
+      console.error("Error al realizar el pedido:", err);
+      alert("Hubo un error al realizar el pedido. Inténtalo de nuevo.");
     });
 }

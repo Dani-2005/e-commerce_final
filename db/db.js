@@ -55,7 +55,7 @@ db.serialize(() => {
     FOREIGN KEY (user_id) REFERENCES users(id)
   )`);
 
-  // Ítems del carrito (ahora con price, name, image)
+  // Ítems del carrito 
   db.run(`CREATE TABLE IF NOT EXISTS cart_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     cart_id INTEGER NOT NULL,
@@ -72,9 +72,11 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
+    cart_id INTEGER NOT NULL,
     total REAL NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (cart_id) REFERENCES carts(id)
   )`);
 
   // Ítems de los pedidos
@@ -90,6 +92,7 @@ db.serialize(() => {
     FOREIGN KEY (product_id) REFERENCES products(id)
   )`);
 });
+
 
 module.exports = db;
 

@@ -6,10 +6,35 @@ const { onlyUser } = require('../middleware/authMiddleware');
 // Ruta para guardar el carrito
 router.post('/cart', onlyUser, (req, res) => {
   const userId = req.user.id;
-  const products = req.body; // asumiendo que es un array de productos
+  const products = req.body;
 
-  if (!Array.isArray(products) || products.length === 0) {
-    return res.status(400).json({ error: 'El carrito está vacío o formato inválido' });
+  if (!Array.isArray(products)) {
+    return res.status(400).json({ error: 'Formato inválido' });
+  }
+
+  if (products.length === 0) {
+    // Si el carrito está vacío, borra los carritos y items del usuario
+    db.all(`SELECT id FROM carts WHERE user_id = ?`, [userId], function(err, carts) {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Error al buscar carritos anteriores' });
+      }
+      const cartIds = carts.map(c => c.id);
+      db.run(`DELETE FROM cart_items WHERE cart_id IN (${cartIds.map(() => '?').join(',') || 'NULL'})`, cartIds, function(err) {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: 'Error al limpiar productos del carrito anterior' });
+        }
+        db.run(`DELETE FROM carts WHERE user_id = ?`, [userId], function(err) {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Error al limpiar el carrito anterior' });
+          }
+          return res.json({ message: 'Carrito vacío y limpiado correctamente' });
+        });
+      });
+    });
+    return;
   }
 
   // Primero, obtenemos los carritos anteriores del usuario
