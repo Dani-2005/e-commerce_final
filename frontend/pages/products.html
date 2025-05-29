@@ -30,7 +30,7 @@
             <li><a href="index.html">Inicio</a></li>
             <li><a href="products.html">Productos</a></li>
             <input type="text" id="search-input" placeholder="Buscar productos...">
-            <li><a href="order.html?orderId=17">Ordenes</a></li> <!-- tengo que cambiar esto para que sea dinamico -->
+            <li><a href="order.html">Ordenes</a></li>
             <div id="user-actions">
             <button id="login-btn" style="display: none;">Iniciar Sesión</button>
             <button id="register-btn" style="display: none;">Registrarse</button>
@@ -45,7 +45,7 @@
     <div class="category">
         <h2>Categorías</h2>
         <ul>
-            <li><a href="products.html?category_id=1">Women's Clothes</a></li>
+            <li><a href="products.html?category=1">Women's Clothes</a></li>
             <li><a href="products.html?category=2">Men's Clothes</a></li>
             <li><a href="products.html?category=3">Shoes</a></li>
             <li><a href="products.html?category=4">Accesories & Bags</a></li>
@@ -56,7 +56,7 @@
     <div class="productos" id="productos"></div>
     
     <script>
-        fetch('http://localhost:3000/api/products')
+        fetch('http://localhost:3000/api/products?category_id=' + new URLSearchParams(window.location.search).get('category'))
         .then(res => res.json())
         .then(data => {
             const contenedor = document.getElementById('productos');

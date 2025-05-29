@@ -192,3 +192,4 @@ function addOrder() {
       alert("Hubo un error al realizar el pedido. Inténtalo de nuevo.");
     });
 }
+

@@ -3,20 +3,30 @@ const db = require('../db/db');
 module.exports = {
     // Get all products
     getAllProducts: (req, res) => {
-        const query = `
-            SELECT p.*, c.name AS category_name, s.name AS subcategory_name
-            FROM products p
-            LEFT JOIN products_category c ON p.category_id = c.category_id
-            LEFT JOIN products_subcategory s ON p.subcategory_id = s.subcategory_id
-        `;
-        db.all(query, [], (err, rows) => {
-            if (err) {
-                res.status(500).json({ error: err.message });
-                return;
-            }
-            res.json(rows);
-        });
-    },
+  const categoryId = req.query.category_id;
+
+  let query = `
+    SELECT p.*, c.name AS category_name, s.name AS subcategory_name
+    FROM products p
+    LEFT JOIN products_category c ON p.category_id = c.category_id
+    LEFT JOIN products_subcategory s ON p.subcategory_id = s.subcategory_id
+  `;
+
+  const params = [];
+
+  if (categoryId) {
+    query += ' WHERE p.category_id = ?';
+    params.push(categoryId);
+  }
+
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows);
+  });
+},
 
 
     // Get products by ID

@@ -41,12 +41,12 @@ background-color: #A8A8A8;
 }
 
 .productos {
-display: flex;
-flex-wrap: wrap;
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 gap: 24px;
 justify-content: center;
 margin: 32px auto;
-max-width: 1200px;
+max-width: 100%;
 }
 .producto {
 background: #fff;
@@ -219,13 +219,35 @@ font-size: 1.2em;
 }
 
 .cart-btn {
-  position: absolute;
-  top: 20px;
-  right: 50px;
-  z-index: 1100;
-  background: #ff9800;
-  color: #fff;
-  border-radius: 50px;
+  border: none;
+  color: #ffffff;
+  background-color: white;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  
+}
+
+
+
+
+.navbar {
+  background-color: #ffffff;
+  padding: 10px;
+  position: sticky;
+  width: 100%;
+  left: 0;
+  transition: top 0.3s;
+  z-index: 1001;
+}
+
+.navbar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;               
+  justify-content: space-between; 
+  align-items: center;
+}
+
+.navbar li {
+  margin: 0 15px;
 }
