@@ -92,7 +92,35 @@ module.exports = {
             res.status(500).json({ error: err.message });
             return;
         }
-        res.json({ updatedID: id });
+        res.json({ message: 'Producto actualizado' });
+    });
+},
+
+    updateStock: (productId, quantity, callback) => {
+    const query = `
+        UPDATE products
+        SET stock = stock - ?
+        WHERE product_id = ? AND stock >= ?
+    `;
+    db.run(query, [quantity, productId, quantity], function(err) {
+        if (err) {
+            callback(err);
+            return;
+        }
+        callback(null, this.changes);
+    });
+},
+    updateStockAsync: (productId, quantity) => {
+    return new Promise((resolve, reject) => {
+        const query = `
+            UPDATE products
+            SET stock = stock - ?
+            WHERE product_id = ? AND stock >= ?
+        `;
+        db.run(query, [quantity, productId, quantity], function(err) {
+            if (err) return reject(err);
+            resolve(this.changes);
+        });
     });
 },
 

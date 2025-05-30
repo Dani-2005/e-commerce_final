@@ -165,29 +165,50 @@
       subcategoriaSelect.disabled = false;
     });
 
-    // Manejo del envío del formulario de agregar producto
-    document.getElementById('productForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      console.log('¡El submit funciona!');
-      const formData = new FormData(this);
 
-      try {
-        const res = await fetch('http://localhost:3000/api/products', {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        document.getElementById('resultado').textContent =
-          res.ok ? 'Producto agregado correctamente' : 'Error: ' + data.error;
+// 1. Define la función cargarProductos
+function cargarProductos() {
+  fetch('http://localhost:3000/api/products')
+    .then(res => res.json())
+    .then(data => {
+      console.log('Productos cargados:', data);
+      // Aquí puedes actualizar el DOM con los productos
+      // Ejemplo: document.getElementById('listaProductos').innerHTML = ...
+    })
+    .catch(err => console.error('Error al cargar productos:', err));
+}
 
-        if (res.ok) {
-          this.reset();
-          cargarProductos();
-        }
-      } catch (err) {
-        document.getElementById('resultado').textContent = 'Error de conexión';
-      }
+// 2. Evento del formulario
+document.getElementById('productForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  console.log('¡El submit funciona!');
+  const formData = new FormData(this);
+
+  try {
+    const res = await fetch('http://localhost:3000/api/products', {
+      method: 'POST',
+      body: formData
     });
+    let data = {};
+    try {
+      data = await res.json();
+    } catch (jsonError) {
+      // Si no es JSON, data queda como {}
+    }
+    document.getElementById('resultado').textContent =
+      res.ok ? 'Producto agregado correctamente' : 'Error: ' + (data.error || 'Error desconocido');
+
+    if (res.ok) {
+      this.reset();
+      cargarProductos(); // Ahora sí existe la función
+    }
+  } catch (err) {
+    document.getElementById('resultado').textContent = 'Error de conexión';
+    console.error(err);
+  }
+});
+
+
 
     // Cargar productos al iniciar
     document.addEventListener('DOMContentLoaded', fetchProductos);
@@ -213,7 +234,14 @@
           <td><img src="${prod.image}" width="40"/></td>
           <td>
             <button onclick="borrarProducto(${prod.product_id})">Borrar</button>
-            <button onclick="abrirEditar(${prod.product_id},'${prod.name}',${prod.price},${prod.stock})">Editar</button>
+            <button onclick="abrirEditar(
+              ${prod.product_id},
+              '${prod.name.replace(/'/g, "\\'")}',
+              ${prod.price},
+              ${prod.stock},
+              ${prod.category_id},
+              ${prod.subcategory_id}
+            )">Editar</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -233,11 +261,13 @@
     }
 
     // Abrir modal de edición
-    window.abrirEditar = function(id, name, price, stock) {
+    window.abrirEditar = function(id, name, price, stock, category_id, subcategory_id) {
       document.getElementById('editId').value = id;
       document.getElementById('editName').value = name;
       document.getElementById('editPrice').value = price;
       document.getElementById('editStock').value = stock;
+      document.getElementById('editCategory').value = category_id;
+      document.getElementById('editSubcategory').value = subcategory_id;
       document.getElementById('editModal').style.display = 'flex';
     };
 

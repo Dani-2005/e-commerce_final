@@ -1,24 +1,14 @@
 
 class Product {
-  constructor(id, name, price, stock, image) {
+  constructor(id, name, price, stock, category, subcategory, image ) {
     this.id = id;
     this.name = name;
     this.price = price;
     this.stock = stock;
+    this.category = category;
+    this.subcategory = subcategory;
     this.image = image;
   }
 }
 
-// Carrito.js
-class Cart {
-  constructor(userId) {
-    this.items = [];
-    this.userId = userId;
-  }
-
-  addProduct(productId, stock) {
-    // Lógica para añadir al carrito
-  }
-}
-
-module.exports = {Product, Cart};
+module.exports = {Product};

@@ -45,10 +45,10 @@
     <div class="category">
         <h2>Categorías</h2>
         <ul>
-            <li><a href="products.html?category=1">Women's Clothes</a></li>
-            <li><a href="products.html?category=2">Men's Clothes</a></li>
-            <li><a href="products.html?category=3">Shoes</a></li>
-            <li><a href="products.html?category=4">Accesories & Bags</a></li>
+            <li class="categ"><a href="products.html?category=1"><img src="/uploads/blue_blouse.jpg" alt="Women's Clothes"></a></li>
+            <li class="categ"><a href="products.html?category=2"><img src="/uploads/f363c71b04503b63e73ae18fda9c4c37" alt="Men's Clothes"></a></li>
+            <li class="categ"><a href="products.html?category=3"><img src="/uploads/308298f4c84e478e959fcdbde0b82986" alt="Shoes"></a></li>
+            <li class="categ"><a href="products.html?category=4"><img src="/uploads/e3336f980a1aa9f4918be6dac68acee5" alt="Accesorios"></a></li>
         </ul>
 
     </div>
@@ -110,12 +110,10 @@
     });
 
     document.addEventListener("DOMContentLoaded", () => {
-  // ...tu código existente...
 
-  // Evento para finalizar compra
   const checkoutBtn = document.getElementById("checkout-btn");
   checkoutBtn.addEventListener("click", async () => {
-    // Suponiendo que tienes un array global productsArray con los productos del carrito
+    
     if (!window.productsArray || productsArray.length === 0) {
       alert("El carrito está vacío.");
       return;

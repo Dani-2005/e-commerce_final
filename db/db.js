@@ -75,6 +75,7 @@ db.serialize(() => {
     cart_id INTEGER NOT NULL,
     total REAL NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status TEXT DEFAULT 'pendiente',
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (cart_id) REFERENCES carts(id)
   )`);
@@ -91,6 +92,33 @@ db.serialize(() => {
     FOREIGN KEY (order_id) REFERENCES orders(id),
     FOREIGN KEY (product_id) REFERENCES products(id)
   )`);
+});
+
+function addStatusColumnIfNeeded() {
+  db.all("PRAGMA table_info(orders)", (err, results) => {
+    if (err) {
+      console.error("Error checking orders table:", err);
+      return;
+    }
+
+    const columns = results.map(col => col.name);
+    if (!columns.includes("status")) {
+      db.run(
+        "ALTER TABLE orders ADD COLUMN status TEXT DEFAULT 'pendiente'",
+        (alterErr) => {
+          if (alterErr) {
+            console.error("Error adding status column:", alterErr);
+          } else {
+            console.log("✅ Columna 'status' añadida a la tabla 'orders'");
+          }
+        }
+      );
+    }
+  });
+}
+
+db.serialize(() => {
+  addStatusColumnIfNeeded();
 });
 
 

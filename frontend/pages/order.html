@@ -77,10 +77,10 @@
       const params = new URLSearchParams(window.location.search);
       const orderId = params.get("orderId");
       await fetch(`http://localhost:3000/api/orders/${orderId}`, {
-        method: "DELETE",
+        method: "PUT",
         credentials: "include"
       });
-      // Borra el carrito en el frontend y localStorage
+      
       localStorage.removeItem('cart');
       if (window.productsArray) window.productsArray = [];
       
@@ -88,6 +88,11 @@
       this.disabled = true;
       // Opcional: Oculta la tabla de la orden
       document.getElementById("orderTable").style.display = "none";
+
+      // Redirige al historial de órdenes después de 1.5 segundos
+      setTimeout(() => {
+        window.location.href = "order_history.html";
+    }, 1500);
     };
   </script>
 </body>

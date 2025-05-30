@@ -1,14 +1,14 @@
 // Order.js
 class Order {
-  constructor(userId, total) {
+  constructor(userId, cartId, total) {
     this.userId = userId;
+    this.cartId = cartId;
     this.total = total;
+    this.createdAt = new Date();
+    this.status = 'pending'; // Estado inicial del pedido
     this.items = [];
   }
 
-  addItem(productId, quantity) {
-    // Lógica para añadir al pedido
-  }
 }
 
 export default Order;
