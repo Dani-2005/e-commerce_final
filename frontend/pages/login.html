@@ -3,39 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <title>Login de Usuario</title>
-  <link rel="stylesheet" href="./css/home.css">
+  <link rel="stylesheet" href="./css/login.css">
 </head>
 <body>
+  <div class="container-form">
   <h1>Login</h1>
   <form id="loginForm">
     <input type="text" name="username" placeholder="Usuario" required><br>
     <input type="password" name="password" placeholder="Contraseña" required><br>
     <button type="submit">Iniciar sesión</button>
-    <p>Aun no te has registrado? <a href="register.html">Registrate aqui</a></p>
+    <p>¿Aún no te has registrado? <a href="register.html">Registrate aqui</a></p>
   </form>
   <div id="result"></div>
+  </div>
   <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const form = e.target;
-      const data = {
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const data = {
         username: form.username.value,
         password: form.password.value
-      };
-      const res = await fetch('/api/login', {
+    };
+    const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
-      });
-      const result = await res.json();
-      if (res.ok && result.token) {
-          document.cookie = `jwt=${result.token}; path=/; max-age=3600`;
-          window.location.href = result.redirect;
-      } else {
-          document.getElementById('result').innerText = result.message;
-      }
     });
+    const result = await res.json();
+    const resultDiv = document.getElementById('result');
+
+    if (res.ok && result.token) {
+        document.cookie = `jwt=${result.token}; path=/; max-age=3600`;
+        window.location.href = result.redirect;
+    } else {
+        resultDiv.innerText = result.message;
+        resultDiv.className = res.ok ? 'success' : 'error';
+        resultDiv.style.display = 'block'; // Mostrar el mensaje
+    }
+});
   </script>
+  
   
 </body>
 </html>
