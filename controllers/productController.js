@@ -4,6 +4,7 @@ module.exports = {
     // Get all products
     getAllProducts: (req, res) => {
   const categoryId = req.query.category_id;
+  const subcategoryId = req.query.subcategory_id; // Ojo: usa el nombre correcto (¿sub_category_id o subcategory_id?)
 
   let query = `
     SELECT p.*, c.name AS category_name, s.name AS subcategory_name
@@ -13,10 +14,19 @@ module.exports = {
   `;
 
   const params = [];
+  const conditions = [];
 
   if (categoryId) {
-    query += ' WHERE p.category_id = ?';
+    conditions.push('p.category_id = ?');
     params.push(categoryId);
+  }
+  if (subcategoryId) {
+    conditions.push('p.subcategory_id = ?');
+    params.push(subcategoryId);
+  }
+
+  if (conditions.length) {
+    query += ' WHERE ' + conditions.join(' AND ');
   }
 
   db.all(query, params, (err, rows) => {
@@ -26,7 +36,8 @@ module.exports = {
     }
     res.json(rows);
   });
-},
+}
+,
 
 
     // Get products by ID

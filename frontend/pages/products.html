@@ -43,12 +43,15 @@
     </nav>
 
     <div class="category">
-        <h2>Categorías</h2>
         <ul>
-            <li class="categ"><a href="products.html?category=1"><img src="/uploads/blue_blouse.jpg" alt="Women's Clothes"></a></li>
-            <li class="categ"><a href="products.html?category=2"><img src="/uploads/f363c71b04503b63e73ae18fda9c4c37" alt="Men's Clothes"></a></li>
-            <li class="categ"><a href="products.html?category=3"><img src="/uploads/308298f4c84e478e959fcdbde0b82986" alt="Shoes"></a></li>
-            <li class="categ"><a href="products.html?category=4"><img src="/uploads/e3336f980a1aa9f4918be6dac68acee5" alt="Accesorios"></a></li>
+            <li class="categ"><a href="products.html?category_id=1"><img src="/uploads/blue_blouse.jpg" alt="Women's Clothes"></a></li>
+            <li class="categ"><a href="products.html?category_id=2"><img src="/uploads/f363c71b04503b63e73ae18fda9c4c37" alt="Men's Clothes"></a></li>
+            <li class="categ"><a href="products.html?category_id=3"><img src="/uploads/308298f4c84e478e959fcdbde0b82986" alt="Shoes"></a></li>
+            <li class="categ"><a href="products.html?category_id=4"><img src="/uploads/e3336f980a1aa9f4918be6dac68acee5" alt="Accesorios"></a></li>
+            <li class="categ"><a href="products.html?subcategory_id=7"><img src="/uploads/2a652a95bc647a72bedf8cfb90df9d81" alt="Women's Clothes"></a></li>
+            <li class="categ"><a href="products.html?subcategory_id=13"><img src="/uploads/670521e906c2211da7cb64de14c65aa0" alt="Men's Clothes"></a></li>
+            <li class="categ"><a href="products.html?subcategory_id=15"><img src="/uploads/ccc80a9fca5f9ca6c5fcd217a4405a9b" alt="Shoes"></a></li>
+            <li class="categ"><a href="products.html?subcategory_id=14"><img src="/uploads/0c687c8601246ecf8f29f27daece0c34" alt="Accesorios"></a></li>
         </ul>
 
     </div>
@@ -56,24 +59,52 @@
     <div class="productos" id="productos"></div>
     
     <script>
-        fetch('http://localhost:3000/api/products?category_id=' + new URLSearchParams(window.location.search).get('category'))
-        .then(res => res.json())
-        .then(data => {
-            const contenedor = document.getElementById('productos');
-            data.forEach(producto => {
-            const card = document.createElement('div');
-            card.className = 'producto';
-            card.innerHTML = `
-                <img src="/uploads/${producto.image}" alt="${producto.name}">
-                <h2>${producto.name}</h2>
-                <p>${producto.category_name}</p>
-                <div class="precio">$${producto.price}</div>
-                <button class="add-cart" data-id="${producto.product_id}">Agregar al carrito</button>
-            `;
-            contenedor.appendChild(card);
-            });
-        })
-        .catch(error => console.error('Error al obtener los productos:', error));
+
+      
+
+        // Obtener los parámetros de la URL
+const params = new URLSearchParams(window.location.search);
+const categoryId = params.get('category_id');
+const subcategoryId = params.get('subcategory_id'); // Cambia a 'sub_category_id' si tu backend lo usa así
+
+// Construir la URL con los parámetros que existan
+let url = 'http://localhost:3000/api/products';
+let queryParams = [];
+
+if (categoryId) {
+    queryParams.push(`category_id=${categoryId}`);
+}
+if (subcategoryId) {
+    queryParams.push(`subcategory_id=${subcategoryId}`); // Cambia si tu backend usa otro nombre
+}
+
+if (queryParams.length > 0) {
+    url += '?' + queryParams.join('&');
+}
+
+// Hacer el fetch y renderizar los productos
+          fetch(url)
+              .then(res => res.json())
+              .then(data => {
+                  const contenedor = document.getElementById('productos');
+                  contenedor.innerHTML = ''; // Limpia el contenedor antes de agregar productos
+                  data.forEach(producto => {
+                      const card = document.createElement('div');
+                      card.className = 'producto';
+                      card.innerHTML = `
+                          <img src="/uploads/${producto.image}" alt="${producto.name}">
+                          <h2>${producto.name}</h2>
+                          <p>${producto.category_name}</p>
+                          <div class="precio">$${producto.price}</div>
+                          <button class="add-cart" data-id="${producto.product_id}">Agregar al carrito</button>
+                      `;
+                      contenedor.appendChild(card);
+                  });
+              })
+              .catch(error => {
+                  console.error('Error:', error);
+              });
+
 
         document.addEventListener("DOMContentLoaded", async () => {
         const loginBtn = document.getElementById("login-btn");

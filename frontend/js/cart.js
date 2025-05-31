@@ -1,6 +1,6 @@
 const ListProducts = document.querySelector("#productos");
-const cartContainer = document.querySelector(".cart > div"); 
-const cartTotal = document.querySelector(".cart-total span"); 
+const cartContainer = document.querySelector(".cart > div");
+const cartTotal = document.querySelector(".cart-total span");
 
 window.productsArray = window.productsArray || [];
 var productsArray = window.productsArray;
@@ -53,7 +53,6 @@ function selectData(p) {
 function renderCart() {
   // Limpiamos el carrito antes de volver a renderizar
   cartContainer.innerHTML = "";
-
   let total = 0;
 
   window.productsArray.forEach(product => {
@@ -62,27 +61,47 @@ function renderCart() {
     div.innerHTML = `
       <img src="${product.img}" width="50" />
       <span>${product.title}</span>
-      <span>${product.quantity} x $${product.price.toFixed(2)}</span>
-      <button class="remove-item" data-id="${product.id}">Eliminar</button>
+      <button class="decrease" data-id="${product.id}">-</button>
+      <span class="quantity">${product.quantity}</span>
+      <button class="increase" data-id="${product.id}">+</button>
+      <span>$${(product.price * product.quantity).toFixed(2)}</span>
     `;
     cartContainer.appendChild(div);
-
     total += product.price * product.quantity;
   });
 
   cartTotal.textContent = `$${total.toFixed(2)}`;
 
-  // Agregamos evento para eliminar productos
-  cartContainer.querySelectorAll(".remove-item").forEach(btn => {
-    btn.addEventListener("click", removeItem);
+  // Agregamos eventos para aumentar y disminuir cantidad
+  cartContainer.querySelectorAll(".increase").forEach(btn => {
+    btn.addEventListener("click", increaseItem);
+  });
+  cartContainer.querySelectorAll(".decrease").forEach(btn => {
+    btn.addEventListener("click", decreaseItem);
   });
 }
 
-function removeItem(e) {
+function increaseItem(e) {
   const id = parseInt(e.target.getAttribute("data-id"));
-  window.productsArray = window.productsArray.filter(product => product.id !== id);
-  renderCart();
-  saveDb();
+  const product = window.productsArray.find(p => p.id === id);
+  if (product) {
+    product.quantity++;
+    renderCart();
+    saveDb();
+  }
+}
+
+function decreaseItem(e) {
+  const id = parseInt(e.target.getAttribute("data-id"));
+  const product = window.productsArray.find(p => p.id === id);
+  if (product) {
+    product.quantity--;
+    if (product.quantity <= 0) {
+      window.productsArray = window.productsArray.filter(p => p.id !== id);
+    }
+    renderCart();
+    saveDb();
+  }
 }
 
 const openCartBtn = document.getElementById("open-cart");
@@ -118,7 +137,6 @@ function saveDb() {
   })
   .then(res => res.json())
   .then(data => {
-    // Puedes mostrar un mensaje de éxito aquí si quieres
     console.log("Carrito guardado:", data);
   })
   .catch(err => {
@@ -129,16 +147,14 @@ function saveDb() {
 function fetchCartFromDb() {
   fetch("http://localhost:3000/api/cart", {
     method: "GET",
-    credentials: "include", // si usas cookies para sesión
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
   })
     .then(res => res.json())
     .then(data => {
-      // Si tu backend devuelve un array de carritos, toma el último y sus productos
       if (Array.isArray(data) && data.length > 0) {
-        // Aquí deberías hacer otro fetch para obtener los productos del carrito
         const cartId = data[data.length - 1].id;
         fetch(`http://localhost:3000/api/cart/${cartId}/items`, {
           method: "GET",
@@ -182,7 +198,6 @@ function addOrder() {
     .then(res => res.json())
     .then(data => {
       console.log("Pedido realizado:", data);
-      // Aquí puedes limpiar el carrito o redirigir al usuario
       window.productsArray = [];
       renderCart();
       alert("Pedido realizado con éxito.");
@@ -192,4 +207,3 @@ function addOrder() {
       alert("Hubo un error al realizar el pedido. Inténtalo de nuevo.");
     });
 }
-
