@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="../pages/css/product.css">
+    <link rel="stylesheet" href="../pages/css/recommend.css">
+</head>
+<body>
+  <div id="header-container"></div>
+  <div id="navbar-container"></div>
+  <div id="category-container"></div>
+  <div id="producto">
+    <div class="producto-img" ></div>
+    <div class="producto-text" ></div>
+  </div>
+  <div class="title-recomemended"><h1>PRODUCTOS RECOMENDADOS</h2></div>
+  <div id="recommended-container">
+    
+  </div>
+  <script>
+function includeHTML(id, url) {
+  return fetch(url)
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById(id).innerHTML = data;
+    });
+}
+
+// Espera a que todos los includes terminen antes de inicializar el carrito
+Promise.all([
+  includeHTML('header-container', '../includes/header.html'),
+  includeHTML('navbar-container', '../includes/navbar.html'),
+  includeHTML('category-container', '../includes/category.html')
+]).then(() => {
+  // Aquí inicializas el carrito y otros scripts que dependan del HTML cargado
+  if (typeof initCart === 'function') initCart();
+  if (typeof initLogin === 'function') initLogin();
+});
+</script>
+<script src="../js/cart.js"></script>
+<script src="../js/login.js"></script>
+<script src="../js/product.js"></script>
+<script src="../js/order.js"></script>
+</body>
+</html>

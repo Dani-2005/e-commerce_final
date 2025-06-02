@@ -1,5 +1,3 @@
-// products.js
-
 const productsModule = (() => {
   let products = [];
 
@@ -37,6 +35,14 @@ const productsModule = (() => {
         <div class="precio">$${producto.price}</div>
         <button class="add-cart" data-id="${producto.product_id}">Agregar al carrito</button>
       `;
+
+      // Redirigir al hacer click en cualquier parte del card excepto el botón "Agregar al carrito"
+      card.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('add-cart')) {
+          window.location.href = `product.html?id=${producto.product_id}`;
+        }
+      });
+
       contenedor.appendChild(card);
     });
   }
