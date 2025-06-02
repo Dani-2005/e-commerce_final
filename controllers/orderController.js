@@ -97,17 +97,34 @@ exports.getOrderHistory = (req, res) => {
 
 exports.payOrder = async (req, res) => {
   const orderId = req.params.orderId;
-  const userId = req.user.id;
+  const userId = req.user?.id;
 
   if (!orderId || !userId) {
     return res.status(400).json({ error: 'Parámetros inválidos' });
   }
+
   if (!db) {
     return res.status(500).json({ error: 'Error de conexión a la base de datos' });
   }
 
   try {
-    // 1. Busca los ítems de la orden
+    // Verificar que la orden pertenece al usuario
+    const order = await new Promise((resolve, reject) => {
+      db.get('SELECT user_id FROM orders WHERE id = ?', [orderId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Orden no encontrada' });
+    }
+
+    if (order.user_id !== userId) {
+      return res.status(403).json({ error: 'No autorizado para esta operación' });
+    }
+
+    // Obtener los ítems de la orden
     const items = await new Promise((resolve, reject) => {
       db.all('SELECT product_id, quantity FROM order_items WHERE order_id = ?', [orderId], (err, rows) => {
         if (err) reject(err);
@@ -115,7 +132,7 @@ exports.payOrder = async (req, res) => {
       });
     });
 
-    // 2. Actualiza el stock de cada producto secuencialmente
+    // Actualizar stock de cada producto
     for (const item of items) {
       const updated = await productController.updateStockAsync(item.product_id, item.quantity);
       if (updated === 0) {
@@ -123,7 +140,7 @@ exports.payOrder = async (req, res) => {
       }
     }
 
-    // 3. Actualiza el estado de la orden
+    // Actualizar estado de la orden
     await new Promise((resolve, reject) => {
       db.run('UPDATE orders SET status = ? WHERE id = ?', ['completed', orderId], (err) => {
         if (err) reject(err);
@@ -132,8 +149,11 @@ exports.payOrder = async (req, res) => {
     });
 
     res.status(200).json({ message: 'Orden pagada y stock actualizado' });
+
   } catch (err) {
+    console.error("Error en payOrder:", err);
     res.status(500).json({ error: err.message });
   }
 };
+
 

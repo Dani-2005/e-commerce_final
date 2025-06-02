@@ -1,173 +1,42 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ModaXpress - Ecommerce</title>
-    <link rel="stylesheet" href="./css/home.css">
-    </head>
-    <body>
-    <header>
-        <div class="logo-container">
-            <img class="logo" src="/uploads/logo modaxpress.jpeg" alt="Logo de la tienda">
-        <h1 id="titulo-tienda">ModaXpress</h1>
-        
-        </div>
-        <div class="slogan">
-            <p>Bienvenido a nuestra tienda de moda. ¡Encuentra tu estilo perfecto!</p> 
-        <div class="cart cart-float" id="cart-float">
-        <button id="close-cart" class="close-cart">&times;</button>
-        <h2>Carrito de compras</h2>
-        <div></div>
-        <div class="cart-total">
-            Total: <span></span>
-            
-        </div>
-        <button id="checkout-btn">Finalizar compra</button>
-        <br>
-        <br> 
-        </div>
-        
-    </header>
-    <nav class="navbar" id="main-navbar">
-        
-        <ul>
-            <li><a href="index.html">Inicio</a></li>
-            <li><a href="products.html">Productos</a></li>
-            
-            <li><a href="order_history.html">Historial de Órdenes</a></li>
-            <div id="user-actions">
-            <button id="login-btn" style="display: none;">Iniciar Sesión</button>
-            <button id="register-btn" style="display: none;">Registrarse</button>
-            <button id="logout-btn" style="display: none;">Cerrar Sesión</button>
-        </div>
-            <li><button id="open-cart" class="cart-btn">        
-                <img src="/uploads/carrito.png" alt="Carrito de compras" style="width: 20px; height: 20px ;" >
-        </button></li>
-        </ul>
-    </nav>
-
-    <div class="category">
-        <ul>
-            <li class="categ"><a href="products.html?category_id=1"><img src="/uploads/blue_blouse.jpg" alt="Women's Clothes"></a></li>
-            <li class="categ"><a href="products.html?category_id=2"><img src="/uploads/f363c71b04503b63e73ae18fda9c4c37" alt="Men's Clothes"></a></li>
-            <li class="categ"><a href="products.html?category_id=3"><img src="/uploads/308298f4c84e478e959fcdbde0b82986" alt="Shoes"></a></li>
-            <li class="categ"><a href="products.html?category_id=4"><img src="/uploads/e3336f980a1aa9f4918be6dac68acee5" alt="Accesorios"></a></li>
-            <li class="categ"><a href="products.html?subcategory_id=7"><img src="/uploads/2a652a95bc647a72bedf8cfb90df9d81" alt="Women's Clothes"></a></li>
-            <li class="categ"><a href="products.html?subcategory_id=13"><img src="/uploads/670521e906c2211da7cb64de14c65aa0" alt="Men's Clothes"></a></li>
-            <li class="categ"><a href="products.html?subcategory_id=15"><img src="/uploads/ccc80a9fca5f9ca6c5fcd217a4405a9b" alt="Shoes"></a></li>
-            <li class="categ"><a href="products.html?subcategory_id=14"><img src="/uploads/0c687c8601246ecf8f29f27daece0c34" alt="Accesorios"></a></li>
-        </ul>
-
-    </div>
-
-    <div class="productos" id="productos"></div>
-    
-    <script>
-        fetch('http://localhost:3000/api/products')
-        .then(res => res.json())
-        .then(data => {
-            const contenedor = document.getElementById('productos');
-            data.forEach(producto => {
-            const card = document.createElement('div');
-            card.className = 'producto';
-            card.innerHTML = `
-                <img src="/uploads/${producto.image}" alt="${producto.name}">
-                <h2>${producto.name}</h2>
-                <p>${producto.category_name}</p>
-                <div class="precio">$${producto.price}</div>
-                <button class="add-cart" data-id="${producto.product_id}">Agregar al carrito</button>
-            `;
-            contenedor.appendChild(card);
-            });
-        })
-        .catch(error => console.error('Error al obtener los productos:', error));
-
-        document.addEventListener("DOMContentLoaded", async () => {
-        const loginBtn = document.getElementById("login-btn");
-        const registerBtn = document.getElementById("register-btn");
-        const logoutBtn = document.getElementById("logout-btn");
-
-        // Verificar sesión con cookies (JWT)
-        const cookies = document.cookie.split("; ");
-        const jwtCookie = cookies.find(row => row.startsWith("jwt="));
-
-        if (jwtCookie) {
-            logoutBtn.style.display = "block"; // Si hay token, mostrar botón de cerrar sesión
-        } else {
-            loginBtn.style.display = "block"; 
-            registerBtn.style.display = "block";
-        }
-
-        // Agregar evento de clic para el botón de iniciar sesión
-        loginBtn.addEventListener("click", () => {
-            window.location.href = "login.html"; // Redirigir a la página de inicio de sesión
-        });
-
-        // Agregar evento de clic para el botón de registrarse
-        registerBtn.addEventListener("click", () => {
-            window.location.href = "register.html"; // Redirigir a la página de registro
-        });
-
-        // Agregar evento de clic para el botón de cerrar sesión
-
-        logoutBtn.addEventListener("click", () => {
-            document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            location.reload(); // Recargar para actualizar la interfaz
-        });
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../pages/css/home.css">
+</head>
+<body>
+  <div id="header-container"></div>
+  <div id="navbar-container"></div>
+  <div id="category-container"></div>
+  <div class="productos" id="productos"></div>
+  <script>
+function includeHTML(id, url) {
+  return fetch(url)
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById(id).innerHTML = data;
     });
+}
 
-    document.addEventListener("DOMContentLoaded", () => {
-
-  const checkoutBtn = document.getElementById("checkout-btn");
-  checkoutBtn.addEventListener("click", async () => {
-    if (!window.productsArray || productsArray.length === 0) {
-      alert("El carrito está vacío.");
-      return;
-    }
-
-    try {
-      const productsMapped = window.productsArray.map(product => ({
-  product_id: product.id,
-  quantity: product.quantity,
-  price: product.price,
-  name: product.title,
-  image: product.img
-}));
-console.log(productsMapped);
-console.log(productsArray);
-
-const res = await fetch("http://localhost:3000/api/orders", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  credentials: "include",
-
+// Espera a que todos los includes terminen antes de inicializar el carrito
+Promise.all([
+  includeHTML('header-container', '../includes/header.html'),
+  includeHTML('navbar-container', '../includes/navbar.html'),
+  includeHTML('category-container', '../includes/category.html')
+]).then(() => {
+  // Aquí inicializas el carrito y otros scripts que dependan del HTML cargado
+  if (typeof initCart === 'function') initCart();
+  if (typeof initLogin === 'function') initLogin();
 });
-      //console.log(productsArray)
-      const data = await res.json();
-      if (res.ok) {
-        alert("¡Orden creada con éxito!");
-        productsArray = [];
-        renderCart(); // Vacía el carrito en el frontend
-        // Redirige a la página de la orden
-        if (data.orderId) {
-          window.location.href = `order.html?orderId=${data.orderId}`;
-        }
-      } else {
-        alert("Error al crear la orden: " + (data.error || "Intenta de nuevo"));
-      }
-    } catch (err) {
-      alert("Error de conexión al crear la orden.");
-    }
-  });
-});
-
-
-    </script>
-    <script src = "../js/cart.js"></script>
-    </body>
-    </html>
+</script>
+<script src="../js/cart.js"></script>
+<script src="../js/login.js"></script>
+<script src="../js/products.js"></script>
+<script src="../js/order.js"></script>
+</body>
+</html>
 
 
 

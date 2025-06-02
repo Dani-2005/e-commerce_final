@@ -37,63 +37,7 @@
   <button id="pagar-btn">Pagar</button>
   <div id="mensaje"></div>
 
-  <script>
-    // Simulación: obtén la última orden del backend
-    document.addEventListener("DOMContentLoaded", async () => {
-      const params = new URLSearchParams(window.location.search);
-      const orderId = params.get("orderId");
-      if (!orderId) {
-        document.getElementById("mensaje").textContent = "No se encontró ninguna orden para mostrar.";
-        document.getElementById("orderTable").style.display = "none";
-        document.getElementById("pagar-btn").style.display = "none";
-        return;
-}
-      const res = await fetch(`http://localhost:3000/api/orders/${orderId}`, { credentials: "include" });
-      const order = await res.json(); // <-- Agrega esta línea
-
-      let total = 0;
-      const tbody = document.querySelector("#orderTable tbody");
-      tbody.innerHTML = "";
-      order.items.forEach(item => {
-        const subtotal = item.price * item.quantity;
-        total += subtotal;
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${item.name}</td>
-          <td><img src="${item.image}" width="50"></td>
-          <td>${item.quantity}</td>
-          <td>$${item.price.toFixed(2)}</td>
-          <td>$${subtotal.toFixed(2)}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-      document.getElementById("totalCell").textContent = `$${total.toFixed(2)}`;
-    });
-
-    // Simulación de pago
-    document.getElementById("pagar-btn").onclick = async function() {
-      alert("¡Gracias por su compra!");
-
-      const params = new URLSearchParams(window.location.search);
-      const orderId = params.get("orderId");
-      await fetch(`http://localhost:3000/api/orders/${orderId}`, {
-        method: "PUT",
-        credentials: "include"
-      });
-      
-      localStorage.removeItem('cart');
-      if (window.productsArray) window.productsArray = [];
-      
-      document.getElementById("mensaje").textContent = "¡Pago realizado con éxito! Gracias por tu compra.";
-      this.disabled = true;
-      // Opcional: Oculta la tabla de la orden
-      document.getElementById("orderTable").style.display = "none";
-
-      // Redirige al historial de órdenes después de 1.5 segundos
-      setTimeout(() => {
-        window.location.href = "order_history.html";
-    }, 1500);
-    };
-  </script>
+  <script src="../js/order.js"></script>
+  <script>window.initOrderPage();</script>
 </body>
 </html>
