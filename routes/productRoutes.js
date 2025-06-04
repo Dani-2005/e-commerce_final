@@ -7,6 +7,7 @@ const upload = multer({ dest: 'uploads/' }); // Configuración de multer para su
 
 
 router.get('/products', productController.getAllProducts);
+
 router.get('/products/:id', productController.getProductById);
 router.post('/products', upload.single('image'), productController.addProduct);
 router.delete('/products/:id', productController.deleteProduct);
