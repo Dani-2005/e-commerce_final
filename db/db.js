@@ -18,6 +18,21 @@ db.serialize(() => {
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )`);
 
+  // Perfiles de usuario
+  db.run(`CREATE TABLE IF NOT EXISTS user_profiles (
+    profile_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    address TEXT NOT NULL,
+    department TEXT NOT NULL,
+    city TEXT NOT NULL,
+    state TEXT NOT NULL,
+    postal_code TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+
   // Categorías de productos
   db.run(`CREATE TABLE IF NOT EXISTS products_category (
     category_id INTEGER PRIMARY KEY AUTOINCREMENT,

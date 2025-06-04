@@ -11,7 +11,7 @@
   <div id="header-container"></div>
   <div id="navbar-container"></div>
   <div id="category-container"></div>
-  <form action="#" method="post" autocomplete="off">
+  <form method="post" autocomplete="off" id="profileForm">
   <label for="nombre">Nombre *</label>
   <input type="text" id="nombre" name="nombre" required>
 
@@ -41,6 +41,50 @@
 </form>
 
   <script>
+document.getElementById('profileForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    
+    // Recuperar user_id de sesión
+    const user_id = sessionStorage.getItem('user_id');
+    if (!user_id) {
+        alert('Error: No se encontró el ID del usuario.');
+        return;
+    }
+
+    const data = {
+        user_id,
+        first_name: form.nombre.value,
+        last_name: form.apellido.value,
+        address: form.direccion.value,
+        department: form.direccion2.value,
+        city: form.ciudad.value,
+        state: form.estado.value,
+        postal_code: form.codigo_postal.value,
+        phone: form.telefono.value
+    };
+
+    try {
+        const res = await fetch('/api/users/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+            alert('Perfil guardado correctamente.');
+            window.location.href = '/pages/index.html'; // Redirigir a la página de perfil
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error al enviar formulario:', error);
+        alert('Error al conectarse al servidor.');
+    }
+});
+
+
 function includeHTML(id, url) {
   return fetch(url)
     .then(response => response.text())

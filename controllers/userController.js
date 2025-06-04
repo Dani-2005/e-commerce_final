@@ -53,5 +53,28 @@ module.exports = {
             }
             res.json({ deletedID: id });
         });
+    },
+    addprofile: (req, res) => {
+        const db = require('../db/db');
+        const { user_id, first_name, last_name, address, department, city, state, postal_code, phone } = req.body;
+        db.run('INSERT INTO user_profiles (user_id, first_name, last_name, address, department, city, state, postal_code, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+            [user_id, first_name, last_name, address, department, city, state, postal_code, phone], function(err) {
+            if (err) {
+                res.status(500).json({ error: err.message });
+                return;
+            }
+            res.status(201).json({ profileID: this.lastID });
+        });
+    },
+    getProfileByUserId: (req, res) => {
+        const db = require('../db/db');
+        const user_id = req.params.user_id;
+        db.get('SELECT * FROM user_profiles WHERE user_id = ?', [user_id], (err, row) => {
+            if (err) {
+                res.status(500).json({ error: err.message });
+                return;
+            }
+            res.json(row);
+        });
     }}
 

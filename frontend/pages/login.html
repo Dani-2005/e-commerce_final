@@ -24,23 +24,54 @@
         username: form.username.value,
         password: form.password.value
     };
+
     const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
+
     const result = await res.json();
     const resultDiv = document.getElementById('result');
 
-    if (res.ok && result.token) {
-        document.cookie = `jwt=${result.token}; path=/; max-age=3600`;
+    if (res.ok && result.token && result.user_id) { // Asegura que también se reciba user_id
+        document.cookie = `jwt=${result.token}; path=/; max-age=3600`; // Guarda JWT
+        sessionStorage.setItem('user_id', result.user_id); // Guarda el ID de usuario
+        localStorage.setItem('user_id', result.user_id); // Opcional para persistencia
+        console.log("User ID guardado:", result.user_id); // Verificación en consola
+
         window.location.href = result.redirect;
     } else {
         resultDiv.innerText = result.message;
         resultDiv.className = res.ok ? 'success' : 'error';
-        resultDiv.style.display = 'block'; // Mostrar el mensaje
+        resultDiv.style.display = 'block';
     }
 });
+
+//     document.getElementById('loginForm').addEventListener('submit', async function (e) {
+//     e.preventDefault();
+//     const form = e.target;
+//     const data = {
+//         username: form.username.value,
+//         password: form.password.value
+//     };
+//     const res = await fetch('/api/login', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(data)
+//     });
+//     const result = await res.json();
+//     const resultDiv = document.getElementById('result');
+
+//     if (res.ok && result.token) {
+//         document.cookie = `jwt=${result.token}; path=/; max-age=3600`;
+//         window.location.href = result.redirect;
+//     } else {
+//         resultDiv.innerText = result.message;
+//         resultDiv.className = res.ok ? 'success' : 'error';
+//         resultDiv.style.display = 'block'; // Mostrar el mensaje
+//     }
+// });
   </script>
   
   

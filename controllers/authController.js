@@ -30,25 +30,27 @@ async function register(req, res) {
 async function login(req, res) {
     const { username, password } = req.body;
     const db = require('../db/db');
+
+    if (!username || !password) {
+        return res.status(400).json({ message: "Usuario y contraseña son requeridos" });
+    }
+
     db.get('SELECT * FROM users WHERE username = ?', [username], async (err, row) => {
         if (err) {
-            res.status(500).json({ error: err.message });
-            return;
+            return res.status(500).json({ error: err.message });
         }
         if (!row) {
-            res.status(401).json({ message: 'Invalid username or password' });
-            return;
+            return res.status(401).json({ message: "Usuario o contraseña incorrectos" });
         }
+
         const match = await bcrypt.compare(password, row.password);
         if (!match) {
-            res.status(401).json({ message: 'Invalid username or password' });
-            return;
+            return res.status(401).json({ message: "Usuario o contraseña incorrectos" });
         }
-        const token = jwt.sign({ id: row.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        //res.json({ token });
 
-        res.status(200).json({ success: true, redirect: '/pages/index.html', token });
+        const token = jwt.sign({ user_id: row.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
+        res.status(200).json({ success: true, user_id: row.id, token, redirect: '/pages/index.html' });
     });
 }
 
