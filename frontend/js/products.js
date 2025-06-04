@@ -8,22 +8,49 @@ const productsModule = (() => {
     fetchProducts();
   }
 
-  // Función para obtener productos desde la API
+  // Función para filtrar y obtener los productos desde la API
+  // según los parámetros de la URL (category_id y subcategory_id)
   function fetchProducts() {
-    fetch('http://localhost:3000/api/products')
+    if (!contenedor) return;
+
+    contenedor.innerHTML = '<div class="loading">Cargando productos...</div>';
+
+    // Obtener parámetros de la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const apiParams = new URLSearchParams();
+
+    // Agregar parámetros de filtrado si existen
+    ['category_id', 'subcategory_id'].forEach(param => {
+      if (urlParams.has(param)) {
+        apiParams.append(param, urlParams.get(param));
+      }
+    });
+
+    // Construir la URL de la API con los parámetros
+    const apiUrl = `http://localhost:3000/api/products?${apiParams.toString()}`;
+
+    fetch(apiUrl)
       .then(res => res.json())
       .then(data => {
         products = data;
         renderProducts();
         attachAddCartListeners();
       })
-      .catch(error => console.error('Error al obtener los productos:', error));
+      .catch(error => {
+        console.error('Error al obtener los productos:', error);
+        contenedor.innerHTML = '<p class="error">Error al cargar los productos. Intenta nuevamente.</p>';
+      });
   }
 
   // Renderiza los productos en el contenedor
   function renderProducts() {
     if (!contenedor) return;
     contenedor.innerHTML = ''; // Limpia antes de renderizar
+
+    if (products.length === 0) {
+      contenedor.innerHTML = '<p class="no-results">No se encontraron productos en esta categoría.</p>';
+      return;
+    }
 
     products.forEach(producto => {
       const card = document.createElement('div');
