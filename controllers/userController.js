@@ -76,5 +76,19 @@ module.exports = {
             }
             res.json(row);
         });
-    }}
+    },
+    getProfileAll: (req, res) => {
+        const db = require('../db/db');
+        
+        db.all('SELECT * FROM user_profiles', [] ,(err, rows) => {
+            if (err) {
+                res.status(500).json({ error: err.message });
+                return;
+            }
+            res.json(rows);
+        });
+    },
+    
+};
+
 
