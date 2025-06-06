@@ -62,6 +62,17 @@ const cartModule = (() => {
             alert("¡Orden creada con éxito!");
             window.productsArray = [];
             renderCart();
+
+            // NUEVO: Limpiar carrito en backend
+            await fetch("http://localhost:3000/api/cart", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify([])
+            });
+
             if (data.orderId) {
               window.location.href = `order.html?orderId=${data.orderId}`;
             }

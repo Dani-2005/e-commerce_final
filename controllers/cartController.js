@@ -10,7 +10,7 @@ const saveCart = (req, res) => {
 
   if (products.length === 0) {
     // Si el carrito está vacío, borra los carritos y items del usuario
-    db.all(`SELECT id FROM carts WHERE user_id = ?`, [userId], function(err, carts) {
+    db.all(`SELECT id FROM carts WHERE user_id = ? AND checked_out = 0`, [userId], function(err, carts) {
       if (err) {
         console.error(err);
         return res.status(500).json({ error: 'Error al buscar carritos anteriores' });

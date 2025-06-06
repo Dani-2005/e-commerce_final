@@ -24,8 +24,6 @@ app.use('/api/', userRoutes);
 app.use('/api/', cartRoutes);
 app.use('/api/', orderRoutes)
 
-
-
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');

@@ -29,6 +29,8 @@
   </table>
   <div id="mensaje"></div>
   <button class="back">volver</button>
+  <script type="module" src="/js/onlyuser.js"></script>
+
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const res = await fetch("http://localhost:3000/api/orders/", { credentials: "include" });
