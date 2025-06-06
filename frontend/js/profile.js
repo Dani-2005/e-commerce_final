@@ -6,63 +6,80 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const res = await fetch(`/api/users/profile/id?user_id=${user_id}`);
+        const res = await fetch(`/api/users/profiles/${user_id}`);
         if (res.ok) {
-            const profile = await res.json();
-            if (profile) {
-                // Mostrar datos del perfil
-                mostrarPerfil(profile);
-            } else {
-                // No hay perfil, mostrar formulario vacío
-                mostrarFormulario();
-            }
+            const direcciones = await res.json();
+            mostrarDirecciones(direcciones);
         } else {
-            alert('Error al obtener perfil.');
+            alert('Error al obtener direcciones.');
         }
     } catch (error) {
-        console.error('Error al cargar perfil:', error);
+        console.error('Error al cargar direcciones:', error);
         alert('Error al conectarse al servidor.');
     }
 });
 
-function mostrarPerfil(profile) {
-    // Ocultar formulario y mostrar datos
-    document.getElementById('profileForm').style.display = 'none';
+function mostrarDirecciones(direcciones) {
+    const container = document.getElementById('direcciones-list');
+    container.innerHTML = '';
 
-    const profileDiv = document.getElementById('profileDisplay');
-    profileDiv.innerHTML = `
-        <p>Nombre: ${profile.first_name} ${profile.last_name}</p>
-        <p>Dirección: ${profile.address}</p>
-        <p>Departamento: ${profile.department}</p>
-        <p>Ciudad: ${profile.city}</p>
-        <p>Estado: ${profile.state}</p>
-        <p>Código Postal: ${profile.postal_code}</p>
-        <p>Teléfono: ${profile.phone}</p>
-        <button id="editBtn">Editar</button>
-    `;
-    profileDiv.style.display = 'block';
+    if (!direcciones || direcciones.length === 0) {
+        container.innerHTML = '<p>No tienes direcciones guardadas.</p>';
+        return;
+    }
 
-    document.getElementById('editBtn').addEventListener('click', () => {
-        profileDiv.style.display = 'none';
-        llenarFormulario(profile);
-        document.getElementById('profileForm').style.display = 'block';
+    direcciones.forEach(dir => {
+        const div = document.createElement('div');
+        div.className = 'direccion-card';
+        div.innerHTML = `
+            <div class="direccion-banda"></div>
+            <div class="direccion-info">
+                <strong>${dir.first_name} ${dir.last_name}</strong>
+                <span class="telefono">${dir.phone || ''}</span><br>
+                ${dir.address} ${dir.department ? dir.department : ''}<br>
+                ${dir.city} ${dir.state} United States ${dir.postal_code}<br>
+                <div class="direccion-acciones">
+                    <a href="#" class="borrar" data-id="${dir.profile_id}">Borrar</a>
+                    <a href="#" class="editar" data-id="${dir.profile_id}">Editar</a>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+
+    // Agregar event listeners para borrar
+    document.querySelectorAll('.borrar').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const profile_id = e.target.getAttribute('data-id');
+            if (confirm('¿Seguro que quieres borrar esta dirección?')) {
+                try {
+                    const res = await fetch(`/api/users/profile/${profile_id}`, {
+                        method: 'DELETE'
+                    });
+                    if (res.ok) {
+                        alert('Dirección borrada correctamente.');
+                        // Recargar la lista
+                        location.reload();
+                    } else {
+                        const error = await res.json();
+                        alert('Error al borrar: ' + error.error);
+                    }
+                } catch (error) {
+                    console.error('Error al borrar dirección:', error);
+                    alert('Error al conectarse al servidor.');
+                }
+            }
+        });
+    });
+
+    // Agregar event listeners para editar
+    document.querySelectorAll('.editar').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const profile_id = e.target.getAttribute('data-id');
+            // Redirigir a página de edición pasando el id (puedes usar query params)
+            window.location.href = `/pages/addprofile.html?id=${profile_id}`;
+        });
     });
 }
-
-function mostrarFormulario() {
-    document.getElementById('profileForm').style.display = 'block';
-    document.getElementById('profileDisplay').style.display = 'none';
-}
-
-function llenarFormulario(profile) {
-    const form = document.getElementById('profileForm');
-    form.nombre.value = profile.first_name;
-    form.apellido.value = profile.last_name;
-    form.direccion.value = profile.address;
-    form.direccion2.value = profile.department;
-    form.ciudad.value = profile.city;
-    form.estado.value = profile.state;
-    form.codigo_postal.value = profile.postal_code;
-    form.telefono.value = profile.phone;
-}
-

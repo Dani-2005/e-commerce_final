@@ -1,70 +1,3 @@
-// orders.js
-
-const ordersModule = (() => {
-
-  // Inicializa el evento del botón "Finalizar compra"
-  function init() {
-    const checkoutBtn = document.getElementById("checkout-btn");
-    if (checkoutBtn) {
-      checkoutBtn.addEventListener("click", createOrder);
-    }
-  }
-
-  // Función async para crear la orden
-  async function createOrder() {
-    if (!window.productsArray || window.productsArray.length === 0) {
-      alert("El carrito está vacío. Agrega productos antes de realizar un pedido.");
-      return;
-    }
-
-    try {
-      const orderData = {
-        products: window.productsArray
-      };
-
-      const res = await fetch("http://localhost:3000/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(orderData),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("¡Orden creada con éxito!");
-        window.productsArray = [];
-        if (window.cartModule && typeof window.cartModule.renderCart === "function") {
-          window.cartModule.renderCart();
-        }
-        if (data.orderId) {
-          window.location.href = `order.html?orderId=${data.orderId}`;
-        }
-      } else {
-        alert("Error al crear la orden: " + (data.error || "Intenta de nuevo"));
-      }
-    } catch (error) {
-      console.error("Error al crear la orden:", error);
-      alert("Error de conexión al crear la orden.");
-    }
-  }
-
-  return {
-    init,
-    createOrder,
-  };
-
-})();
-
-// Inicializar cuando el DOM esté listo
-document.addEventListener("DOMContentLoaded", () => {
-  ordersModule.init();
-});
-
-
-// Función para inicializar la página de detalle de orden y pago
 window.initOrderPage = function() {
   document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
@@ -123,6 +56,31 @@ window.initOrderPage = function() {
 
     payBtn.onclick = async function() {
       try {
+        // Obtener user_id desde sessionStorage
+        const user_id = sessionStorage.getItem('user_id');
+        if (!user_id) {
+          alert('No se encontró el usuario. Por favor, inicia sesión.');
+          return;
+        }
+
+        // Verificar si el usuario tiene perfil completo
+        const perfilRes = await fetch(`http://localhost:3000/api/users/profiles/${user_id}`, {
+          credentials: 'include'
+        });
+
+        if (!perfilRes.ok) {
+          throw new Error('Error al verificar perfil');
+        }
+
+        const perfiles = await perfilRes.json();
+
+        if (!perfiles || perfiles.length === 0) {
+          alert('Debes completar tu perfil antes de realizar el pago.');
+          window.location.href = '/pages/addprofile.html';
+          return;
+        }
+
+        // Proceder con el pago
         const response = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
           method: "PUT",
           credentials: "include"

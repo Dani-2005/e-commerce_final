@@ -84,3 +84,100 @@ form {
     flex: 1;
   }
 }
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 32px;
+    font-size: 2.3em;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+#add-address-btn {
+    margin: 24px auto 32px auto;
+    display: block;
+    background: #222;
+    color: #fff;
+    font-weight: bold;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 3px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+#add-address-btn:hover {
+    background: #444;
+}
+
+#direcciones-list {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.direccion-card {
+    display: flex;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    margin-bottom: 22px;
+    background: #fff;
+    box-shadow: 0 2px 6px #f0f0f0;
+}
+
+.direccion-banda {
+    width: 6px;
+    border-radius: 6px 0 0 6px;
+    background: repeating-linear-gradient(
+        to bottom,
+        #3c8c5a, #3c8c5a 10px,
+        #e65151 10px, #e65151 20px,
+        #f0f0f0 20px, #f0f0f0 30px
+    );
+    margin-right: 16px;
+}
+
+.direccion-info {
+    padding: 18px 24px 10px 0;
+    flex: 1;
+    position: relative;
+}
+
+.direccion-info strong {
+    font-size: 1.15em;
+}
+
+.direccion-info .telefono {
+    color: #888;
+    font-size: 0.98em;
+    margin-left: 8px;
+}
+
+.direccion-info .direccion-predeterminada {
+    display: inline-block;
+    margin-top: 10px;
+    border: 1px solid #3c8c5a;
+    color: #3c8c5a;
+    border-radius: 3px;
+    padding: 2px 12px;
+    font-size: 0.99em;
+    background: #f8fff8;
+}
+
+.direccion-acciones {
+    margin-top: 10px;
+}
+.direccion-acciones a {
+    color: #337ab7;
+    text-decoration: none;
+    margin-right: 18px;
+    font-size: 0.98em;
+    transition: color 0.2s;
+}
+.direccion-acciones a:hover {
+    color: #23527c;
+}
+

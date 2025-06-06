@@ -69,7 +69,18 @@ module.exports = {
     getProfileByUserId: (req, res) => {
         const db = require('../db/db');
         const user_id = req.params.user_id;
-        db.get('SELECT * FROM user_profiles WHERE user_id = ?', [user_id], (err, row) => {
+        db.all('SELECT * FROM user_profiles WHERE user_id = ?', [user_id], (err, row) => {
+            if (err) {
+                res.status(500).json({ error: err.message });
+                return;
+            }
+            res.json(row);
+        });
+    },
+    getProfileByprofile_id: (req, res) => {
+        const db = require('../db/db');
+        const profile_id = req.params.profile_id;
+        db.all('SELECT * FROM user_profiles WHERE profile_id = ?', [profile_id], (err, row) => {
             if (err) {
                 res.status(500).json({ error: err.message });
                 return;
@@ -88,7 +99,58 @@ module.exports = {
             res.json(rows);
         });
     },
+
+    deleteProfile: (req, res) => {
+    const db = require('../db/db');
+    const profile_id = req.params.profile_id;  // Id del perfil a borrar
+    db.run('DELETE FROM user_profiles WHERE profile_id = ?', [profile_id], function(err) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        if (this.changes === 0) {
+            res.status(404).json({ error: 'Perfil no encontrado' });
+            return;
+        }
+        res.json({ message: 'Perfil borrado correctamente' });
+    });
+},
+
+updateProfile: (req, res) => {
+    const db = require('../db/db');
+    const profileID = req.params.profile_id;
+    const { first_name, last_name, address, department, city, state, postal_code, phone } = req.body;
+
+    db.run(
+        `UPDATE user_profiles SET 
+            first_name = ?, 
+            last_name = ?, 
+            address = ?, 
+            department = ?, 
+            city = ?, 
+            state = ?, 
+            postal_code = ?, 
+            phone = ?
+         WHERE profile_id = ?`,
+        [first_name, last_name, address, department, city, state, postal_code, phone, profileID],
+        function(err) {
+            if (err) {
+                res.status(500).json({ error: err.message });
+                return;
+            }
+            if (this.changes === 0) {
+                res.status(404).json({ error: 'Perfil no encontrado' });
+                return;
+            }
+            res.json({ message: 'Perfil actualizado correctamente' });
+        }
+    );
+},
+
+
     
 };
+
+
 
 

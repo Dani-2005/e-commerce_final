@@ -6,14 +6,14 @@ const db = require('../db/db');
 function onlyUser(req, res, next) {
     reviewCookies(req, res, (user) => {
         if (user) return next();
-        return res.redirect('/pages/index.html');
+        return res.redirect('/pages/login.html');
     });
 }
 
 function onlyPublic(req, res, next) {
     reviewCookies(req, res, (user) => {
         if (!user) return next();
-        return res.redirect('/pages/index.html');
+        return res.redirect('/pages/login.html');
     });
 }
 
@@ -24,7 +24,7 @@ function reviewCookies(req, res, callback) {
         if (!cookieJWT) return callback(null);
         const token = cookieJWT.split('=')[1];
         const encoded = jwt.verify(token, process.env.JWT_SECRET);
-        const userId = encoded.id;
+        const userId = encoded.user_id;
         db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) => {
             if (err || !row) return callback(null);
             req.user = row;

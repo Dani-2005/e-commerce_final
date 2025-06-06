@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Perfil de Usuario</title>
+    <link rel="stylesheet" href="../pages/css/home.css" />
+    <link rel="stylesheet" href="./css/profile.css" />
+</head>
+<body>
+  <div id="header-container"></div>
+  <div id="navbar-container"></div>
+  <div id="category-container"></div>
+
+  <form method="post" autocomplete="off" id="profileForm">
+    <label for="nombre">Nombre *</label>
+    <input type="text" id="nombre" name="nombre" required />
+
+    <label for="apellido">Apellido *</label>
+    <input type="text" id="apellido" name="apellido" required />
+
+    <label for="direccion">Dirección *</label>
+    <input type="text" id="direccion" name="direccion" placeholder="Calle y número, por ejemplo: 123 Maple Ave" required />
+
+    <label for="direccion2">Depto., unidad, edificio, piso, habitación, etc. (opcional)</label>
+    <input type="text" id="direccion2" name="direccion2" placeholder="Opcional" />
+
+    <label for="ciudad">Ciudad *</label>
+    <input type="text" id="ciudad" name="ciudad" required />
+
+    <label for="estado">Estado *</label>
+    <input type="text" id="estado" name="estado" required />
+
+    <label for="codigo_postal">Código postal *</label>
+    <input type="text" id="codigo_postal" name="codigo_postal" placeholder="Por ejemplo: 12345" required />
+
+    <label for="telefono">Número de teléfono</label>
+    <input type="tel" id="telefono" name="telefono" placeholder="p. ej., 123 456 7890" />
+
+    <button type="submit">Guardar</button>
+    <button type="button" onclick="window.history.back();">Cancelar</button>
+  </form>
+
+  <script>
+    function includeHTML(id, url) {
+      return fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById(id).innerHTML = data;
+        });
+    }
+
+    Promise.all([
+      includeHTML('header-container', '../includes/header.html'),
+      includeHTML('navbar-container', '../includes/navbar.html'),
+    ]).then(() => {
+      if (typeof initCart === 'function') initCart();
+      if (typeof initLogin === 'function') initLogin();
+    });
+  </script>
+
+  <script src="../js/cart.js"></script>
+  <script src="../js/login.js"></script>
+  <script src="../js/products.js"></script>
+  <script src="../js/order.js"></script>
+  <script src="../js/profileadd.js"></script>
+</body>
+</html>
