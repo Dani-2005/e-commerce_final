@@ -58,7 +58,8 @@ const productsModule = (() => {
       card.innerHTML = `
         <img src="/uploads/${producto.image}" alt="${producto.name}">
         <h2>${producto.name}</h2>
-        <p>${producto.category_name}</p>
+        <p>Categoría: ${producto.category_name}</p>
+        <p>Sub-categoría: ${producto.subcategory_name}</p>
         <div class="precio">$${producto.price}</div>
         <button class="add-cart" data-id="${producto.product_id}">Agregar al carrito</button>
       `;

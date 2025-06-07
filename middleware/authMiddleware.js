@@ -36,3 +36,4 @@ function reviewCookies(req, res, callback) {
 }
 
 module.exports = { onlyUser, onlyPublic , reviewCookies };
+

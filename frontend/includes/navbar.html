@@ -1,16 +1,22 @@
 <nav class="navbar" id="main-navbar">
-        
-        <ul>
-            <li><a href="index.html">Inicio</a></li>
-            <li><a href="products.html">Productos</a></li>
-            
-            <li><a href="order_history.html">Historial de Órdenes</a></li>
-            <div id="user-actions">
+    <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="products.html">Productos</a></li>
+                 <li>
+            <form id="search-form" action="/pages/search.html" method="GET">
+                <input type="text" name="query" placeholder="Buscar..." aria-label="Buscar" required>
+                <button type="submit">🔍</button>
+            </form>
+        </li>
+        <li><a href="order_history.html">Historial de Órdenes</a></li>
+
+        <div id="user-actions">
             <button id="login-btn" style="display: none;">Iniciar Sesión</button>
             <button id="register-btn" style="display: none;">Registrarse</button>
             <button id="logout-btn" style="display: none;">Cerrar Sesión</button>
             <button id="profile-btn" style="display:none;">Perfil</button>
+        </div>
+    </ul>
+</nav>
 
-        </ul>
-    </nav>
 

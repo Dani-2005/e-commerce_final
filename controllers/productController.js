@@ -147,5 +147,30 @@ module.exports = {
             }
             res.json({ deletedID: id });
         });
+    },
+
+    searchProducts: (req, res) => {
+    const searchTerm = (req.query.query || '').trim();
+    if (!searchTerm) {
+        return res.status(400).json({ error: 'Falta el término de búsqueda' });
     }
+
+    const sql = `
+        SELECT p.*, c.name AS category_name, s.name AS subcategory_name
+        FROM products p
+        LEFT JOIN products_category c ON p.category_id = c.category_id
+        LEFT JOIN products_subcategory s ON p.subcategory_id = s.subcategory_id
+        WHERE LOWER(p.name) LIKE LOWER(?)
+           OR LOWER(c.name) LIKE LOWER(?)
+           OR LOWER(s.name) LIKE LOWER(?)
+    `;
+    const params = [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`];
+
+    db.all(sql, params, (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(rows);
+    });
+}
 };

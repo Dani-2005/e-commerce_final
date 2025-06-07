@@ -53,6 +53,8 @@ const recommendedModule = (() => {
       <div class="recommended-product" data-id="${product.product_id}" style="cursor:pointer;">
         <img src="/uploads/${product.image}" alt="${product.name}">
         <h4>${product.name}</h4>
+        <p>Categoría: ${product.category_name}</p>
+        <p>Sub-categoría: ${product.subcategory_name}</p>
         <div class="precio">$${product.price}</div>
         <button class="add-cart-recommended" data-id="${product.product_id}">Agregar al carrito</button>
       </div>
@@ -134,7 +136,8 @@ const productModule = (() => {
 
       textDiv.innerHTML = `
         <h2>${product.name}</h2>
-        <p>${product.category_name}</p>
+        <p>Categoría: ${product.category_name}</p>
+        <p>Sub-categoría: ${product.subcategory_name}</p>
         <div class="precio">$${product.price}</div>
         <button class="add-cart" data-id="${product.product_id}">Agregar al carrito</button>
       `;
