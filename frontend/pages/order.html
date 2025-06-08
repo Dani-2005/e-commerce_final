@@ -13,6 +13,17 @@
   </style>
 </head>
 <body>
+<div id="direccion-principal"></div>
+<!-- Modal o sección oculta para seleccionar dirección -->
+<div id="modal-direcciones" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:1000;">
+  <div style="background:#fff; max-width:400px; margin:5% auto; padding:2rem; border-radius:8px;">
+    <h3>Selecciona una dirección</h3>
+    <div id="direcciones-list"></div>
+    <button id="cerrar-modal">Cerrar</button>
+  </div>
+</div>
+
+
   <h2>Detalle de tu Orden</h2>
   <table id="orderTable">
     <thead>
@@ -36,8 +47,14 @@
   </table>
   <button id="pagar-btn">Pagar</button>
   <div id="mensaje"></div>
+  <div id="facturaPreview" style="display:none; position:fixed; top:10%; left:10%; width:80%; height:80%; background:#fff; border:1px solid #ccc; overflow:auto; padding:20px; z-index:1000;">
+  <button id="cerrarFactura">Cerrar</button>
+  <h2>Factura de la Orden</h2>
+  <div id="contenidoFactura"></div>
+</div>
 
   <script src="../js/order.js"></script>
+  <script src="../js/profile.js"></script>
   <script src="/js/onlyuser.js"></script>
   <script>window.initOrderPage();</script>
 </body>

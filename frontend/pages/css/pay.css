@@ -1,0 +1,84 @@
+.contenedor-pay {
+  display: flex;
+  gap: 20px; /* espacio entre columnas */
+  padding: 20px;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+.izquierda, .derecha {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto; /* para scroll si el contenido es alto */
+}
+
+.izquierda {
+  flex: 1; /* ocupa proporcionalmente más espacio */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.derecha {
+  flex: 0 0 350px; /* ancho fijo para la columna derecha */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Opcional: estilos para los productos y botones */
+.producto {
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.producto img {
+  border-radius: 4px;
+  width: 80px;
+  height: 100px;
+}
+
+.productos-list {
+    display: flex;
+    gap: 10px;
+}
+
+.form-pay {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-pay button {
+  width: 200px;
+  margin-right: 10px;
+  padding: 8px 12px;
+  border: none;
+  background-color: #000000;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.form-pay button:hover {
+  background-color: #115293;
+}
+
+#pagar-btn {
+  padding: 12px;
+  background-color: #388e3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+#pagar-btn:hover {
+  background-color: #2e7d32;
+}

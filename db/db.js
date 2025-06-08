@@ -84,16 +84,18 @@ db.serialize(() => {
   )`);
 
   // Pedidos
-  db.run(`CREATE TABLE IF NOT EXISTS orders (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    cart_id INTEGER NOT NULL,
-    total REAL NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status TEXT DEFAULT 'pendiente',
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (cart_id) REFERENCES carts(id)
-  )`);
+db.run(`CREATE TABLE IF NOT EXISTS orders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  cart_id INTEGER NOT NULL,
+  total REAL NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  status TEXT DEFAULT 'pendiente',
+  direccion TEXT,
+  metodo_pago TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (cart_id) REFERENCES carts(id)
+)`);
 
   // Ítems de los pedidos
   db.run(`CREATE TABLE IF NOT EXISTS order_items (
@@ -109,22 +111,33 @@ db.serialize(() => {
   )`);
 });
 
-function addStatusColumnIfNeeded() {
+function addDireccionAndMetodoPagoColumnsIfNeeded() {
   db.all("PRAGMA table_info(orders)", (err, results) => {
     if (err) {
       console.error("Error checking orders table:", err);
       return;
     }
-
     const columns = results.map(col => col.name);
-    if (!columns.includes("status")) {
+    if (!columns.includes("direccion")) {
       db.run(
-        "ALTER TABLE orders ADD COLUMN status TEXT DEFAULT 'pendiente'",
+        "ALTER TABLE orders ADD COLUMN direccion TEXT",
         (alterErr) => {
           if (alterErr) {
-            console.error("Error adding status column:", alterErr);
+            console.error("Error adding direccion column:", alterErr);
           } else {
-            console.log("✅ Columna 'status' añadida a la tabla 'orders'");
+            console.log("✅ Columna 'direccion' añadida a la tabla 'orders'");
+          }
+        }
+      );
+    }
+    if (!columns.includes("metodo_pago")) {
+      db.run(
+        "ALTER TABLE orders ADD COLUMN metodo_pago TEXT",
+        (alterErr) => {
+          if (alterErr) {
+            console.error("Error adding metodo_pago column:", alterErr);
+          } else {
+            console.log("✅ Columna 'metodo_pago' añadida a la tabla 'orders'");
           }
         }
       );
@@ -133,7 +146,7 @@ function addStatusColumnIfNeeded() {
 }
 
 db.serialize(() => {
-  addStatusColumnIfNeeded();
+  addDireccionAndMetodoPagoColumnsIfNeeded();
 });
 
 

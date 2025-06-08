@@ -18,6 +18,7 @@ router.get('/users/profiles/all', userController.getProfileAll);
 router.get('/users/profiles/:user_id', userController.getProfileByUserId);
 router.get('/users/profile/:profile_id', userController.getProfileByprofile_id);
 router.put('/users/profile/:profile_id', userController.updateProfile);
+router.put('/users/profiles/:profile_id/set-default', userController.setDefaultProfile);
 router.delete('/users/profile/:profile_id', userController.deleteProfile);
 router.delete('/users/profiles/:user_id', userController.deleteProfile);
 router.put('/users/profiles/:user_id', userController.deleteProfile);

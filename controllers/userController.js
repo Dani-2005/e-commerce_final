@@ -116,6 +116,22 @@ module.exports = {
     });
 },
 
+setDefaultProfile: async (req, res) => {
+  const userId = req.user.id;
+  const profileId = req.params.profile_id;
+
+  try {
+    // Aquí va la lógica para actualizar el perfil predeterminado
+    await ProfileModel.setDefaultProfile(userId, profileId);
+
+    res.status(200).json({ message: 'Dirección predeterminada actualizada' });
+  } catch (error) {
+    console.error('Error en setDefaultProfile:', error);
+    res.status(500).json({ message: 'Error al actualizar dirección predeterminada', error: error.message });
+  }
+},
+
+
 updateProfile: (req, res) => {
     const db = require('../db/db');
     const profileID = req.params.profile_id;
