@@ -69,18 +69,22 @@ module.exports = {
     getProfileByUserId: (req, res) => {
         const db = require('../db/db');
         const user_id = req.params.user_id;
-        db.all('SELECT * FROM user_profiles WHERE user_id = ?', [user_id], (err, row) => {
+        db.all(
+            'SELECT * FROM user_profiles WHERE user_id = ? ORDER BY is_default DESC',
+            [user_id],
+            (err, rows) => {
             if (err) {
                 res.status(500).json({ error: err.message });
                 return;
             }
-            res.json(row);
-        });
+            res.json(rows);
+            }
+    );
     },
     getProfileByprofile_id: (req, res) => {
         const db = require('../db/db');
         const profile_id = req.params.profile_id;
-        db.all('SELECT * FROM user_profiles WHERE profile_id = ?', [profile_id], (err, row) => {
+        db.get('SELECT * FROM user_profiles WHERE profile_id = ?', [profile_id], (err, row) => {
             if (err) {
                 res.status(500).json({ error: err.message });
                 return;
@@ -116,20 +120,69 @@ module.exports = {
     });
 },
 
-setDefaultProfile: async (req, res) => {
-  const userId = req.user.id;
+  setDefaultProfile: (req, res) => {
+  const db = require('../db/db');
+  const userId = req.user.id; // Asumiendo que usas middleware que setea req.user
   const profileId = req.params.profile_id;
 
-  try {
-    // Aquí va la lógica para actualizar el perfil predeterminado
-    await ProfileModel.setDefaultProfile(userId, profileId);
+  db.serialize(() => {
+    // 1. Verificar que el perfil existe y pertenece al usuario
+    db.get(
+      'SELECT * FROM user_profiles WHERE profile_id = ? AND user_id = ?',
+      [profileId, userId],
+      (err, row) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        if (!row) {
+          return res.status(404).json({ message: 'Perfil no encontrado o no pertenece al usuario' });
+        }
 
-    res.status(200).json({ message: 'Dirección predeterminada actualizada' });
-  } catch (error) {
-    console.error('Error en setDefaultProfile:', error);
-    res.status(500).json({ message: 'Error al actualizar dirección predeterminada', error: error.message });
-  }
-},
+        // 2. Iniciar transacción
+        db.run('BEGIN TRANSACTION', (err) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+
+          // 3. Desmarcar todas las direcciones del usuario como no predeterminadas
+          db.run(
+            'UPDATE user_profiles SET is_default = 0 WHERE user_id = ?',
+            [userId],
+            function(err) {
+              if (err) {
+                return db.run('ROLLBACK', () => {
+                  res.status(500).json({ error: err.message });
+                });
+              }
+
+              // 4. Marcar la dirección seleccionada como predeterminada
+              db.run(
+                'UPDATE user_profiles SET is_default = 1 WHERE profile_id = ? AND user_id = ?',
+                [profileId, userId],
+                function(err) {
+                  if (err) {
+                    return db.run('ROLLBACK', () => {
+                      res.status(500).json({ error: err.message });
+                    });
+                  }
+
+                  // 5. Confirmar transacción
+                  db.run('COMMIT', (err) => {
+                    if (err) {
+                      return res.status(500).json({ error: err.message });
+                    }
+                    res.status(200).json({ message: 'Dirección predeterminada actualizada' });
+                  });
+                }
+              );
+            }
+          );
+        });
+      }
+    );
+  });
+}
+,
 
 
 updateProfile: (req, res) => {

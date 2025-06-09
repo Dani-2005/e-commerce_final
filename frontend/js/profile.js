@@ -9,11 +9,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       sessionStorage.setItem('user_id', user_id);
     }
 
+    // Variable global para direcciones
+    window.direcciones = [];
+
     const res = await fetch(`/api/users/profiles/${user_id}`, { credentials: 'include' });
     if (!res.ok) throw new Error('Error al obtener direcciones');
-    const direcciones = await res.json();
+    window.direcciones = await res.json();
 
-    mostrarDireccionPrincipal(direcciones);
+    mostrarDireccionPrincipal(window.direcciones);
 
     // Botón cerrar modal
     document.getElementById('cerrar-modal').onclick = () => {
@@ -52,7 +55,7 @@ function mostrarDireccionPrincipal(direcciones) {
   `;
 
   document.getElementById('cambiar-direccion').onclick = () => {
-    mostrarModalDirecciones(direcciones, principal.profile_id);
+    mostrarModalDirecciones(window.direcciones, principal.profile_id);
   };
 }
 
@@ -89,18 +92,18 @@ function mostrarModalDirecciones(direcciones, idActual) {
     btn.onclick = async () => {
       const idSeleccionado = btn.getAttribute('data-id');
       try {
-        // Llamada para actualizar la dirección predeterminada en backend
         const res = await fetch(`/api/users/profiles/${idSeleccionado}/set-default`, {
           method: 'PUT',
           credentials: 'include'
         });
         if (!res.ok) throw new Error('Error al establecer dirección predeterminada');
 
-        // Actualizar la vista localmente
-        const nuevaPrincipal = direcciones.find(d => d.profile_id == idSeleccionado);
-        const otras = direcciones.filter(d => d.profile_id != idSeleccionado);
-        const nuevasDirecciones = [nuevaPrincipal, ...otras];
-        mostrarDireccionPrincipal(nuevasDirecciones);
+        // Actualizar la variable global direcciones con la nueva orden
+        const nuevaPrincipal = window.direcciones.find(d => d.profile_id == idSeleccionado);
+        const otras = window.direcciones.filter(d => d.profile_id != idSeleccionado);
+        window.direcciones = [nuevaPrincipal, ...otras];
+
+        mostrarDireccionPrincipal(window.direcciones);
         modal.style.display = 'none';
       } catch (error) {
         console.error(error);
@@ -116,16 +119,17 @@ function mostrarModalDirecciones(direcciones, idActual) {
       if (!confirm('¿Estás seguro de que quieres borrar esta dirección?')) return;
 
       try {
-        const res = await fetch(`/api/users/profile/${idBorrar}`, {
+        const res = await fetch(`/api/users/profiles/${idBorrar}`, {  // corregí la ruta aquí
           method: 'DELETE',
           credentials: 'include'
         });
         if (!res.ok) throw new Error('Error al borrar dirección');
 
-        // Actualizar la lista localmente
-        const nuevasDirecciones = direcciones.filter(d => d.profile_id != idBorrar);
-        mostrarModalDirecciones(nuevasDirecciones, idActual === idBorrar ? (nuevasDirecciones[0]?.profile_id || null) : idActual);
-        mostrarDireccionPrincipal(nuevasDirecciones);
+        // Actualizar la variable global eliminando la dirección borrada
+        window.direcciones = window.direcciones.filter(d => d.profile_id != idBorrar);
+
+        mostrarModalDirecciones(window.direcciones, idActual === idBorrar ? (window.direcciones[0]?.profile_id || null) : idActual);
+        mostrarDireccionPrincipal(window.direcciones);
       } catch (error) {
         console.error(error);
         alert('No se pudo borrar la dirección.');

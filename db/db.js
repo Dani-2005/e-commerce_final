@@ -142,11 +142,14 @@ function addDireccionAndMetodoPagoColumnsIfNeeded() {
         }
       );
     }
+
+    
   });
 }
 
 db.serialize(() => {
   addDireccionAndMetodoPagoColumnsIfNeeded();
+  
 });
 
 
