@@ -4,13 +4,43 @@
   <meta charset="UTF-8">
   <title>Login de Usuario</title>
   <link rel="stylesheet" href="./css/login.css">
+  <style>
+    .password-container {
+      position: relative;
+      width: 100%;
+      max-width: 300px; /* ajusta según tu diseño */
+    }
+    .password-container input[type="password"],
+    .password-container input[type="text"] {
+      width: 100%;
+      padding-right: 40px; /* espacio para el botón ojo */
+      box-sizing: border-box;
+    }
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      user-select: none;
+      font-size: 18px;
+      color: #666;
+    }
+    .toggle-password:hover {
+      color: #000;
+    }
+  </style>
 </head>
 <body>
   <div class="container-form">
   <h1>Login</h1>
   <form id="loginForm">
     <input type="text" name="username" placeholder="Usuario" required><br>
-    <input type="password" name="password" placeholder="Contraseña" required><br>
+    <div class="password-container">
+      <input type="password" name="password" placeholder="Contraseña" required id="password" />
+      <span class="toggle-password" id="togglePassword" title="Mostrar/Ocultar contraseña">&#128065;</span>
+    </div>
+    <br />
     <button type="submit">Iniciar sesión</button>
     <p>¿Aún no te has registrado? <a href="register.html">Registrate aqui</a></p>
   </form>
@@ -19,62 +49,44 @@
   <script src="/js/onlypublic.js"></script>
   <script>
     document.getElementById('loginForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const form = e.target;
-    const data = {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
         username: form.username.value,
         password: form.password.value
-    };
+      };
 
-    const res = await fetch('/api/login', {
+      const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
-    });
+      });
 
-    const result = await res.json();
-    const resultDiv = document.getElementById('result');
+      const result = await res.json();
+      const resultDiv = document.getElementById('result');
 
-    if (res.ok && result.token && result.user_id) { // Asegura que también se reciba user_id
-        document.cookie = `jwt=${result.token}; path=/; max-age=3600`; // Guarda JWT
-        sessionStorage.setItem('user_id', result.user_id); // Guarda el ID de usuario
-        localStorage.setItem('user_id', result.user_id); // Opcional para persistencia
-        console.log("User ID guardado:", result.user_id); // Verificación en consola
+      if (res.ok && result.token && result.user_id) {
+        document.cookie = `jwt=${result.token}; path=/; max-age=3600`;
+        sessionStorage.setItem('user_id', result.user_id);
+        localStorage.setItem('user_id', result.user_id);
+        console.log("User ID guardado:", result.user_id);
 
         window.location.href = result.redirect;
-    } else {
+      } else {
         resultDiv.innerText = result.message;
         resultDiv.className = res.ok ? 'success' : 'error';
         resultDiv.style.display = 'block';
-    }
-});
+      }
+    });
 
-//     document.getElementById('loginForm').addEventListener('submit', async function (e) {
-//     e.preventDefault();
-//     const form = e.target;
-//     const data = {
-//         username: form.username.value,
-//         password: form.password.value
-//     };
-//     const res = await fetch('/api/login', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify(data)
-//     });
-//     const result = await res.json();
-//     const resultDiv = document.getElementById('result');
-
-//     if (res.ok && result.token) {
-//         document.cookie = `jwt=${result.token}; path=/; max-age=3600`;
-//         window.location.href = result.redirect;
-//     } else {
-//         resultDiv.innerText = result.message;
-//         resultDiv.className = res.ok ? 'success' : 'error';
-//         resultDiv.style.display = 'block'; // Mostrar el mensaje
-//     }
-// });
+    // Mostrar/ocultar contraseña con el icono ojo
+    document.getElementById('togglePassword').addEventListener('click', function () {
+      const passwordInput = document.getElementById('password');
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      this.title = type === 'password' ? 'Mostrar contraseña' : 'Ocultar contraseña';
+      this.style.color = type === 'password' ? '#666' : '#000';
+    });
   </script>
-  
-  
 </body>
 </html>

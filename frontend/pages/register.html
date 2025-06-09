@@ -1,42 +1,111 @@
-<!-- register.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Registro de Usuario</title>
-  <link rel="stylesheet" href="./css/register.css">
+  <link rel="stylesheet" href="./css/register.css" />
+  <style>
+    .password-container {
+      position: relative;
+      width: 100%;
+      max-width: 300px; /* ajusta según tu diseño */
+    }
+    .password-container input[type="password"],
+    .password-container input[type="text"] {
+      width: 100%;
+      padding-right: 40px; /* espacio para el botón ojo */
+      box-sizing: border-box;
+    }
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      user-select: none;
+      font-size: 18px;
+      color: #666;
+    }
+    .toggle-password:hover {
+      color: #000;
+    }
+  </style>
 </head>
 <body>
   <div class="container-form">
-  <h1>Registro</h1>
-  <form id="registerForm">
-    <input type="text" name="username" placeholder="Usuario" required><br>
-    <input type="email" name="email" placeholder="Correo" required><br>
-    <input type="password" name="password" placeholder="Contraseña" required><br>
-    <button type="submit">Registrarse</button>
-    <p>¿Ya te has registrado? <a href="login.html">Inicia Sesion aqui</a></p>
-  </form>
-  <div id="result"></div>
+    <h1>Registro</h1>
+    <form id="registerForm">
+      <input type="text" name="username" placeholder="Usuario" required /><br />
+      <input type="email" name="email" placeholder="Correo" required /><br />
+      <div class="password-container">
+        <input type="password" name="password" placeholder="Contraseña" required id="password" />
+        <span class="toggle-password" id="togglePassword" title="Mostrar/Ocultar contraseña">&#128065;</span>
+        <!-- &#128065; es un icono de ojo simple -->
+      </div>
+      <br />
+      <button type="submit">Registrarse</button>
+      <p>¿Ya te has registrado? <a href="login.html">Inicia Sesion aqui</a></p>
+    </form>
+    <div id="result"></div>
   </div>
+
   <script src="../js/onlypublic.js"></script>
   <script>
-    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    // Mostrar/ocultar contraseña con el icono ojo
+    document.getElementById('togglePassword').addEventListener('click', function () {
+      const passwordInput = document.getElementById('password');
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      // Cambiar el icono o título si quieres
+      this.title = type === 'password' ? 'Mostrar contraseña' : 'Ocultar contraseña';
+      // Opcional: cambiar icono, aquí solo cambia color
+      this.style.color = type === 'password' ? '#666' : '#000';
+    });
+
+    // Código de validación y envío (igual que antes)
+    document.getElementById('registerForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       const form = e.target;
-      const data = {
-        username: form.username.value,
-        email: form.email.value,
-        password: form.password.value
-      };
+      const username = form.username.value.trim();
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const resultDiv = document.getElementById('result');
+      let errors = [];
+
+      if (username.length < 6) {
+        errors.push('El nombre de usuario debe tener al menos 6 caracteres.');
+      }
+
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]).{6,}$/;
+      if (!passwordRegex.test(password)) {
+        errors.push(
+          'La contraseña debe tener al menos 6 caracteres y contener una mayúscula, una minúscula, un número y un carácter especial.'
+        );
+      }
+
+      if (errors.length > 0) {
+        resultDiv.innerText = errors.join('\n');
+        resultDiv.style.color = 'red';
+        return;
+      }
+
+      resultDiv.innerText = '';
+
+      const data = { username, email, password };
       const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
       const result = await res.json();
-      document.getElementById('result').innerText = JSON.stringify(result);
-      if (res.ok && result.redirect) {
+      if (res.ok && result.token && result.user_id) {
+        document.cookie = `jwt=${result.token}; path=/; max-age=3600`;
+        sessionStorage.setItem('user_id', result.user_id);
+        localStorage.setItem('user_id', result.user_id);
         window.location.href = result.redirect;
+      } else {
+        resultDiv.innerText = result.message || 'Error en el registro.';
+        resultDiv.style.color = 'red';
       }
     });
   </script>

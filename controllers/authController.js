@@ -2,30 +2,34 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 async function register(req, res) {
-    const { username, password, email } = req.body;
-    const db = require('../db/db');
+  const { username, password, email } = req.body;
+  const db = require('../db/db');
 
-    // Verificar si el usuario o email ya existen
-    db.get('SELECT * FROM users WHERE username = ? OR email = ?', [username, email], async (err, row) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        if (row) {
-            res.status(400).json({ message: 'Username or email already exists' });
-            return;
-        }
-        const hashedPassword = await bcrypt.hash(password, 10);
-        db.run('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', [username, hashedPassword, email], function(err) {
-            if (err) {
-                res.status(500).json({ error: err.message });
-                return;
-            }
-            res.status(200).json({ success: true, redirect: '/pages/index.html' });
-
-        });
+  db.get('SELECT * FROM users WHERE username = ? OR email = ?', [username, email], async (err, row) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (row) {
+      res.status(400).json({ message: 'Username or email already exists' });
+      return;
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    db.run('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', [username, hashedPassword, email], function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      // Obtener el id del usuario recién creado (this.lastID)
+      const userId = this.lastID;
+      // Generar token JWT
+      const token = jwt.sign({ user_id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      // Enviar token y redirección al frontend
+      res.status(200).json({ success: true, user_id: userId, token, redirect: '/pages/index.html' });
     });
+  });
 }
+
 
 async function login(req, res) {
     const { username, password } = req.body;
