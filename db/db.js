@@ -55,10 +55,12 @@ db.serialize(() => {
     stock INTEGER NOT NULL,
     category_id INTEGER,
     subcategory_id INTEGER,
+    size_id TEXT,
     image BLOB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES products_category(category_id),
     FOREIGN KEY (subcategory_id) REFERENCES products_subcategory(subcategory_id)
+    FOREIGN KEY (size_id) REFERENCES product_size(size_id)
   )`);
 
   // Carritos

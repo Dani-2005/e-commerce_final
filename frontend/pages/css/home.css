@@ -468,3 +468,32 @@ ul {
 #search-form button:hover {
   background-color: #0056b3;
 }
+
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100vw; height: 100vh;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-content {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    position: relative;
+  }
+  .close {
+    position: absolute;
+    right: 1rem;
+    top: 0.5rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  #sizesContainerPreview label {
+    margin-right: 1rem;
+  }

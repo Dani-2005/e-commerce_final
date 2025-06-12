@@ -11,6 +11,25 @@
   <div id="navbar-container"></div>
   <div id="category-container"></div>
   <div class="productos" id="productos"></div>
+
+  <!-- vista previa producto -->
+<div id="productPreviewModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span id="closePreview" class="close">&times;</span>
+    <img id="previewImage" src="" alt="" style="max-width:200px;">
+    <h2 id="previewName"></h2>
+    <p id="previewCategory"></p>
+    <p id="previewSubcategory"></p>
+    <p>Precio: $<span id="previewPrice"></span></p>
+
+    <div id="sizesContainerPreview">
+      <!-- Aquí se mostrarán las tallas disponibles con opción para seleccionar -->
+    </div>
+
+    <button id="addToCartFromPreview" disabled>Agregar al carrito</button>
+  </div>
+</div>
+
   <script>
 function includeHTML(id, url) {
   return fetch(url)

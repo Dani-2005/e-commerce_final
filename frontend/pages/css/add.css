@@ -1,0 +1,124 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 2rem;
+  background: #fafafa;
+  margin: 0;
+}
+
+form {
+  max-width: 400px;
+  margin: auto;
+  background: #f8f8f8;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+
+label {
+  display: block;
+  margin-top: 1rem;
+}
+
+input, select {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.3rem;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  margin-top: 1.5rem;
+  padding: 0.7rem 1.5rem;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: #135ba1;
+}
+
+#resultado {
+  max-width: 400px;
+  margin: 1rem auto;
+  font-weight: bold;
+  text-align: center;
+  color: #333;
+}
+
+/* Tabla de productos */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(0,0,0,0.05);
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 0.8rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  background: #f2f2f2;
+}
+
+td img {
+  display: block;
+  max-width: 40px;
+  max-height: 40px;
+  object-fit: contain;
+}
+
+/* Modal de edición */
+#editModal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+#editForm {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 400px;
+  margin: auto;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+/* Contenedores de tallas y stock */
+#sizesContainer, #editSizesContainer {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+#sizesContainer label, #editSizesContainer label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
+
+#sizesContainer input[type="number"],
+#editSizesContainer input[type="number"] {
+  width: 60px;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
