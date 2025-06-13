@@ -74,7 +74,7 @@ const saveCart = (req, res) => {
           }
 
           const stmt = db.prepare(
-            `INSERT INTO cart_items (cart_id, product_id, quantity, price, name, image) VALUES (?, ?, ?, ?, ?, ?)`
+            `INSERT INTO cart_items (cart_id, product_id, quantity, price, name, image, size_id) VALUES (?, ?, ?, ?, ?, ?, ?)`
           );
 
           let insertErrors = false;
@@ -88,6 +88,7 @@ const saveCart = (req, res) => {
               product.price,
               product.name,
               product.image,
+              product.size_id || null,  
               function(err) {
                 if (err) {
                   insertErrors = true;

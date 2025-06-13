@@ -19,15 +19,15 @@ exports.createOrder = (req, res) => {
 
         const orderId = this.lastID;
 
-        // Insertar ítems de la orden
+        // Insertar ítems de la orden, incluyendo size_id
         const stmt = db.prepare(
-          'INSERT INTO order_items (order_id, product_id, quantity, price, name, image) VALUES (?, ?, ?, ?, ?, ?)'
+          'INSERT INTO order_items (order_id, product_id, quantity, price, name, image, size_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
         );
         let inserted = 0;
         let hasError = false;
 
         for (const item of items) {
-          stmt.run(orderId, item.product_id, item.quantity, item.price, item.name, item.image, function(err) {
+          stmt.run(orderId, item.product_id, item.quantity, item.price, item.name, item.image, item.size_id || null, function(err) {
             if (err) hasError = true;
             inserted++;
             if (inserted === items.length) {
@@ -94,11 +94,48 @@ exports.getOrderHistory = (req, res) => {
     res.json(orders);
   });
 };
+// Obtener una orden por ID
+exports.getOrderById = (req, res) => {
+  const orderId = req.params.orderId;
+  const userId = req.user.id;
+
+  db.get('SELECT * FROM orders WHERE id = ? AND user_id = ?', [orderId, userId], (err, order) => {
+    if (err) return res.status(500).json({ error: 'Error al obtener la orden' });
+    if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+
+    db.all('SELECT * FROM order_items WHERE order_id = ?', [orderId], (err, items) => {
+      if (err) return res.status(500).json({ error: 'Error al obtener los ítems de la orden' });
+      order.items = items;
+      res.json(order);
+    });
+  });
+};
+
+// Eliminar una orden (puedes cambiar esto para solo actualizar el estado si lo deseas)
+exports.deleteOrder = (req, res) => {
+  const orderId = req.params.orderId;
+  const userId = req.user.id;
+
+  db.run('UPDATE orders SET estado = ? WHERE id = ? AND user_id = ?', ['pagado', orderId, userId], function(err) {
+    if (err) return res.status(500).json({ error: 'Error al actualizar el estado de la orden' });
+    if (this.changes === 0) return res.status(404).json({ error: 'Orden no encontrada' });
+    res.json({ message: 'Orden pagada con éxito' });
+  });
+};
+
+// Historial de órdenes del usuario
+exports.getOrderHistory = (req, res) => {
+  const userId = req.user.id;
+  db.all('SELECT * FROM orders WHERE user_id = ? AND estado = ? ORDER BY created_at DESC', [userId, 'pagado'], (err, orders) => {
+    if (err) return res.status(500).json({ error: 'Error al obtener el historial de órdenes' });
+    res.json(orders);
+  });
+};
 
 exports.payOrder = async (req, res) => {
   const orderId = req.params.orderId;
   const userId = req.user?.id;
-  const { metodo_pago, direccion } = req.body; // Recibe método y dirección desde frontend
+  const { metodo_pago, direccion } = req.body;
 
   if (!orderId || !userId || !metodo_pago || !direccion) {
     return res.status(400).json({ error: 'Parámetros inválidos' });
@@ -125,46 +162,75 @@ exports.payOrder = async (req, res) => {
       return res.status(400).json({ error: 'La orden ya ha sido pagada' });
     }
 
-    // Obtener los ítems de la orden
+    // Obtener los ítems de la orden, incluyendo size_id
     const items = await new Promise((resolve, reject) => {
-      db.all('SELECT product_id, quantity, price, name FROM order_items WHERE order_id = ?', [orderId], (err, rows) => {
+      db.all('SELECT product_id, quantity, price, name, size_id FROM order_items WHERE order_id = ?', [orderId], (err, rows) => {
         if (err) reject(err);
         else resolve(rows);
       });
     });
 
-    // Actualizar stock de cada producto
+    // Descontar stock por talla
     for (const item of items) {
-      const updated = await productController.updateStockAsync(item.product_id, item.quantity);
-      if (updated === 0) {
-        return res.status(400).json({ error: `No hay suficiente stock para el producto ${item.name}` });
+      if (!item.size_id) {
+        return res.status(400).json({ error: `No se encontró talla para el producto ${item.name}` });
       }
+
+      // Verificar stock actual
+      const stockRow = await new Promise((resolve, reject) => {
+        db.get(
+          'SELECT stock FROM product_sizes WHERE product_id = ? AND size_id = ?',
+          [item.product_id, item.size_id],
+          (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+          }
+        );
+      });
+
+      if (!stockRow || stockRow.stock < item.quantity) {
+        return res.status(400).json({ error: `No hay suficiente stock para el producto ${item.name} en la talla seleccionada` });
+      }
+
+      // Actualizar stock
+      await new Promise((resolve, reject) => {
+        db.run(
+          'UPDATE product_sizes SET stock = stock - ? WHERE product_id = ? AND size_id = ?',
+          [item.quantity, item.product_id, item.size_id],
+          function(err) {
+            if (err) reject(err);
+            else resolve();
+          }
+        );
+      });
     }
 
     // Calcular total (por seguridad, recalcular en backend)
     const total = items.reduce((acc, i) => acc + i.price * i.quantity, 0);
 
-    // Insertar factura en tabla invoices (debes tener esta tabla creada)
-    await new Promise((resolve, reject) => {
-      const stmt = db.prepare(`INSERT INTO invoices 
-        (order_id, user_id, metodo_pago, direccion_nombre, direccion_telefono, direccion_calle, direccion_ciudad_estado_cp, total, fecha) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`);
-      stmt.run(
-        orderId,
-        userId,
-        metodo_pago,
-        direccion.nombre || '',
-        direccion.telefono || '',
-        direccion.calle || '',
-        direccion.ciudad_estado_cp || '',
-        total,
-        function(err) {
-          if (err) reject(err);
-          else resolve();
-        }
-      );
-      stmt.finalize();
-    });
+    // Eliminar o comentar esta parte para no usar tabla invoices
+/*
+await new Promise((resolve, reject) => {
+  const stmt = db.prepare(`INSERT INTO invoices 
+    (order_id, user_id, metodo_pago, direccion_nombre, direccion_telefono, direccion_calle, direccion_ciudad_estado_cp, total, fecha) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`);
+  stmt.run(
+    orderId,
+    userId,
+    metodo_pago,
+    direccion.nombre || '',
+    direccion.telefono || '',
+    direccion.calle || '',
+    direccion.ciudad_estado_cp || '',
+    total,
+    function(err) {
+      if (err) reject(err);
+      else resolve();
+    }
+  );
+  stmt.finalize();
+});
+*/
 
     // Actualizar estado de la orden a pagada
     await new Promise((resolve, reject) => {
@@ -182,32 +248,6 @@ exports.payOrder = async (req, res) => {
   }
 };
 
-
-exports.payFinalOrden = async (req, res) => {
-  const orderId = req.params.orderId;
-  const { metodo_pago, direccion } = req.body;
-
-  if (!metodo_pago || !direccion) {
-    return res.status(400).json({ error: 'Faltan datos para actualizar la orden' });
-  }
-
-  const direccionStr = JSON.stringify(direccion);
-
-  db.run(
-    `UPDATE orders SET metodo_pago = ?, direccion = ?, status = ? WHERE id = ?`,
-    [metodo_pago, direccionStr, 'completado', orderId],
-    function(err) {
-      if (err) {
-        console.error('Error actualizando la orden:', err);
-        return res.status(500).json({ error: 'Error actualizando la orden' });
-      }
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'Orden no encontrada' });
-      }
-      res.json({ success: true });
-    }
-  );
-};
 
 exports.getFacturaOrden = (req, res) => {
   const orderId = req.params.orderId;

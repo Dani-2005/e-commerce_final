@@ -5,18 +5,14 @@ const orderController = require('../controllers/orderController');
 
 router.use('/orders', onlyUser);
 
+router.post('/orders', orderController.createOrder);
+router.get('/orders', orderController.getOrders);
+router.get('/orders/:orderId', orderController.getOrderById);
+router.delete('/orders/:orderId', orderController.deleteOrder);
 
-router.post('/orders', onlyUser, orderController.createOrder);
-router.get('/orders', onlyUser, orderController.getOrders);
-router.get('/orders', onlyUser, orderController.getOrders);
-router.get('/orders/:orderId', onlyUser, orderController.getOrderById);
-router.delete('/orders/:orderId', onlyUser, orderController.deleteOrder);
-router.put('/orders/:orderId', onlyUser, orderController.payFinalOrden);
-router.put('/pay/:orderId', onlyUser, orderController.payFinalOrden);
-router.get('/factura/:orderId/', onlyUser, orderController.getFacturaOrden);
+// Solo una ruta para pagar la orden, usa el nombre correcto del controlador
+router.put('/orders/:orderId', orderController.payOrder);
 
-
-// Suponiendo Express y body-parser ya configurados
-
+router.get('/factura/:orderId', orderController.getFacturaOrden);
 
 module.exports = router;

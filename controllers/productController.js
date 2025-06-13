@@ -3,83 +3,127 @@ const db = require('../db/db');
 module.exports = {
     // Get all products
   getAllProducts: (req, res) => {
-  const categoryId = req.query.category_id;
-  const subcategoryId = req.query.subcategory_id;
+    const categoryId = req.query.category_id;
+    const subcategoryId = req.query.subcategory_id;
 
-  let query = `
-    SELECT p.*
-         , c.name AS category_name
-         , s.name AS subcategory_name
-    FROM products p
-    LEFT JOIN products_category c ON p.category_id = c.category_id
-    LEFT JOIN products_subcategory s ON p.subcategory_id = s.subcategory_id
-  `;
-
-  const params = [];
-  const conditions = [];
-
-  if (categoryId) {
-    conditions.push('p.category_id = ?');
-    params.push(categoryId);
-  }
-  if (subcategoryId) {
-    conditions.push('p.subcategory_id = ?');
-    params.push(subcategoryId);
-  }
-
-  if (conditions.length) {
-    query += ' WHERE ' + conditions.join(' AND ');
-  }
-
-  db.all(query, params, (err, products) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-
-    if (products.length === 0) {
-      res.json([]);
-      return;
-    }
-
-    // Obtener tallas y stock para todos los productos
-    const productIds = products.map(p => p.product_id);
-    const placeholders = productIds.map(() => '?').join(', ');
-
-    const sizesQuery = `
-      SELECT ps_rel.product_id, ps.name, ps_rel.stock
-      FROM product_sizes ps_rel
-      JOIN product_size ps ON ps_rel.size_id = ps.size_id
-      WHERE ps_rel.product_id IN (${placeholders})
+    let query = `
+      SELECT p.*
+           , c.name AS category_name
+           , s.name AS subcategory_name
+      FROM products p
+      LEFT JOIN products_category c ON p.category_id = c.category_id
+      LEFT JOIN products_subcategory s ON p.subcategory_id = s.subcategory_id
     `;
 
-    db.all(sizesQuery, productIds, (err, sizes) => {
+    const params = [];
+    const conditions = [];
+
+    if (categoryId) {
+      conditions.push('p.category_id = ?');
+      params.push(categoryId);
+    }
+    if (subcategoryId) {
+      conditions.push('p.subcategory_id = ?');
+      params.push(subcategoryId);
+    }
+
+    if (conditions.length) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    db.all(query, params, (err, products) => {
       if (err) {
         res.status(500).json({ error: err.message });
         return;
       }
 
-      // Agrupar tallas por producto_id
-      const sizesByProduct = {};
-      sizes.forEach(({ product_id, name, stock }) => {
-        if (!sizesByProduct[product_id]) {
-          sizesByProduct[product_id] = [];
+      if (products.length === 0) {
+        res.json([]);
+        return;
+      }
+
+      // Obtener tallas y stock para todos los productos
+      const productIds = products.map(p => p.product_id);
+      const placeholders = productIds.map(() => '?').join(', ');
+
+      const sizesQuery = `
+        SELECT ps_rel.product_id, ps.size_id, ps.name, ps_rel.stock
+        FROM product_sizes ps_rel
+        JOIN product_size ps ON ps_rel.size_id = ps.size_id
+        WHERE ps_rel.product_id IN (${placeholders})
+      `;
+
+      db.all(sizesQuery, productIds, (err, sizes) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
         }
-        sizesByProduct[product_id].push({ name, stock });
+
+        // Agrupar tallas por producto_id
+        const sizesByProduct = {};
+        sizes.forEach(({ product_id, size_id, name, stock }) => {
+          if (!sizesByProduct[product_id]) {
+            sizesByProduct[product_id] = [];
+          }
+          sizesByProduct[product_id].push({ id: size_id, name, stock });
+        });
+
+        // Añadir tallas a cada producto
+        const productsWithSizes = products.map(product => ({
+          ...product,
+          sizes: sizesByProduct[product.product_id] || []
+        }));
+
+        res.json(productsWithSizes);
       });
-
-      // Añadir tallas a cada producto
-      const productsWithSizes = products.map(product => ({
-        ...product,
-        sizes: sizesByProduct[product.product_id] || []
-      }));
-
-      res.json(productsWithSizes);
     });
-  });
-},
+  },
 
+  // Get product by ID
+  getProductById: (req, res) => {
+    const id = req.params.id;
+    const query = `
+      SELECT 
+          p.*, 
+          c.name AS category_name, 
+          s.name AS subcategory_name
+      FROM products p
+      LEFT JOIN products_category c ON p.category_id = c.category_id
+      LEFT JOIN products_subcategory s ON p.subcategory_id = s.subcategory_id
+      WHERE p.product_id = ?
+    `;
 
+    db.get(query, [id], (err, product) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      if (!product) {
+        res.status(404).json({ error: 'Producto no encontrado' });
+        return;
+      }
+
+      const sizesQuery = `
+        SELECT ps.size_id, ps.name, ps_rel.stock
+        FROM product_sizes ps_rel
+        JOIN product_size ps ON ps_rel.size_id = ps.size_id
+        WHERE ps_rel.product_id = ?
+      `;
+
+      db.all(sizesQuery, [id], (err, sizes) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+        product.sizes = sizes.map(({ size_id, name, stock }) => ({
+          id: size_id,
+          name,
+          stock
+        }));
+        res.json(product);
+      });
+    });
+  },
 
     // Get products by ID la modificacion es para tener stock por prodictos
     getProductById: (req, res) => {
@@ -106,11 +150,12 @@ module.exports = {
         }
 
         const sizesQuery = `
-            SELECT ps.name, ps_rel.stock
-            FROM product_sizes ps_rel
-            JOIN product_size ps ON ps_rel.size_id = ps.size_id
-            WHERE ps_rel.product_id = ?
+          SELECT ps.size_id, ps.name, ps_rel.stock
+          FROM product_sizes ps_rel
+          JOIN product_size ps ON ps_rel.size_id = ps.size_id
+          WHERE ps_rel.product_id = ?
         `;
+
 
         db.all(sizesQuery, [id], (err, sizes) => {
             if (err) {

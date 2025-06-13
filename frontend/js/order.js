@@ -11,6 +11,14 @@ window.initOrderPage = function() {
       return;
     }
 
+    // Mapeo de size_id a nombre de talla (ajusta según tus tallas reales)
+    const sizeNames = {
+      1: "S",
+      2: "M",
+      3: "L",
+      4: "XL"
+    };
+
     let order;
     try {
       const res = await fetch(`http://localhost:3000/api/orders/${orderId}`, { credentials: "include" });
@@ -19,7 +27,6 @@ window.initOrderPage = function() {
       }
       order = await res.json();
 
-      // Código para mostrar los ítems y total
       let total = 0;
       const tbody = document.querySelector("#orderTable tbody");
       tbody.innerHTML = "";
@@ -27,11 +34,16 @@ window.initOrderPage = function() {
       order.items.forEach(item => {
         const subtotal = item.price * item.quantity;
         total += subtotal;
+
+        // Obtener el nombre de la talla a partir de size_id
+        const talla = item.size_id ? (sizeNames[item.size_id] || 'N/A') : 'N/A';
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${item.name}</td>
           <td><img src="${item.image}" width="50"></td>
           <td>${item.quantity}</td>
+          <td>${talla}</td>
           <td>$${item.price.toFixed(2)}</td>
           <td>$${subtotal.toFixed(2)}</td>
         `;
@@ -52,7 +64,6 @@ window.initOrderPage = function() {
     const payBtn = document.getElementById("pagar-btn");
     if (!payBtn) return;
 
-    // Cambiar texto y acción del botón según estado de la orden
     if (order.status === "pendiente") {
       payBtn.textContent = "Pagar";
       payBtn.onclick = () => {
@@ -61,11 +72,12 @@ window.initOrderPage = function() {
     } else {
       payBtn.textContent = "Mostrar factura";
       payBtn.onclick = () => {
-        mostrarFactura(orderId);  // <-- Llamar a la función mostrarFactura
+        mostrarFactura(orderId);
       };
     }
   });
 };
+
 
 // Función para mostrar la factura
 async function mostrarFactura(orderId) {

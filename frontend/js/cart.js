@@ -1,5 +1,3 @@
-// cart.js
-
 function initCart() {
   cartModule.init();
 }
@@ -44,7 +42,9 @@ const cartModule = (() => {
             quantity: product.quantity,
             price: product.price,
             name: product.title,
-            image: product.img
+            image: product.img,
+            size_id: product.size_id 
+
           }));
 
           const res = await fetch("http://localhost:3000/api/orders", {
@@ -89,60 +89,75 @@ const cartModule = (() => {
 
   // Agrega un producto al carrito o aumenta cantidad si ya existe
   function addToCart(product) {
-    const exists = window.productsArray.some(p => p.id === product.id);
+  // product debe incluir size_id
+  const exists = window.productsArray.some(p => p.id === product.id && p.size_id === product.size_id);
 
-    if (exists) {
-      window.productsArray = window.productsArray.map(p => {
-        if (p.id === product.id) {
-          p.quantity++;
-        }
-        return p;
-      });
-    } else {
-      window.productsArray = [...window.productsArray, { ...product, quantity: 1 }];
-    }
-
-    renderCart();
-    saveDb();
-
-    // Mostrar carrito flotante
-    if (cartFloat) {
-      cartFloat.classList.add("active");
-    }
+  if (exists) {
+    window.productsArray = window.productsArray.map(p => {
+      if (p.id === product.id && p.size_id === product.size_id) {
+        p.quantity++;
+      }
+      return p;
+    });
+  } else {
+    window.productsArray = [
+      ...window.productsArray,
+      { ...product, quantity: 1 }
+    ];
   }
+
+  renderCart();
+  saveDb();
+
+  if (cartFloat) {
+    cartFloat.classList.add("active");
+  }
+}
+
 
   // Renderiza los productos en el carrito
-  function renderCart() {
-    if (!cartContainer || !cartTotal) return;
+  const sizeNames = {
+  1: "S",
+  2: "M",
+  3: "L",
+  4: "XL"
+};
 
-    cartContainer.innerHTML = "";
-    let total = 0;
+function renderCart() {
+  if (!cartContainer || !cartTotal) return;
 
-    window.productsArray.forEach(product => {
-      const div = document.createElement("div");
-      div.classList.add("cart-item");
-      div.innerHTML = `
-        <img src="${product.img}" width="50" />
-        <span>${product.title}</span>
-        <button class="decrease" data-id="${product.id}">-</button>
-        <span class="quantity">${product.quantity}</span>
-        <button class="increase" data-id="${product.id}">+</button>
-        <span>$${(product.price * product.quantity).toFixed(2)}</span>
-      `;
-      cartContainer.appendChild(div);
-      total += product.price * product.quantity;
-    });
+  cartContainer.innerHTML = "";
+  let total = 0;
 
-    cartTotal.textContent = `$${total.toFixed(2)}`;
+  window.productsArray.forEach(product => {
+    const sizeName = sizeNames[product.size_id] || 'N/A';
 
-    // Añadir eventos para botones + y -
-    cartContainer.querySelectorAll(".increase").forEach(btn => {
-      btn.addEventListener("click", increaseItem);
-    });
-    cartContainer.querySelectorAll(".decrease").forEach(btn => {
-      btn.addEventListener("click", decreaseItem);
-    });
-  }
+    const div = document.createElement("div");
+    div.classList.add("cart-item");
+    div.innerHTML = `
+      <img src="${product.img}" width="50" />
+      <span>${product.title}</span>
+      <button class="decrease" data-id="${product.id}">-</button>
+      <span class="quantity">${product.quantity}</span>
+      <span>Talla: ${sizeName}</span>
+      <button class="increase" data-id="${product.id}">+</button>
+      <span>$${(product.price * product.quantity).toFixed(2)}</span>
+    `;
+    cartContainer.appendChild(div);
+    total += product.price * product.quantity;
+  });
+
+  cartTotal.textContent = `$${total.toFixed(2)}`;
+
+  // Añadir eventos para botones + y -
+  cartContainer.querySelectorAll(".increase").forEach(btn => {
+    btn.addEventListener("click", increaseItem);
+  });
+  cartContainer.querySelectorAll(".decrease").forEach(btn => {
+    btn.addEventListener("click", decreaseItem);
+  });
+}
+
 
   // Aumenta la cantidad de un producto
   function increaseItem(e) {
@@ -178,29 +193,34 @@ const cartModule = (() => {
 
   // Guarda el carrito en el backend
   function saveDb() {
-    const productsMapped = window.productsArray.map(product => ({
-      product_id: product.id,
-      quantity: product.quantity,
-      price: product.price,
-      name: product.title,
-      image: product.img
-    }));
+  const productsMapped = window.productsArray.map(product => ({
+    product_id: product.id,
+    quantity: product.quantity,
+    price: product.price,
+    name: product.title,
+    image: product.img,
+    size_id: product.size_id // Asegúrate de que esto exista
+  }));
 
-    fetch("http://localhost:3000/api/cart", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(productsMapped),
+  // Parchar: mostrar qué se va a guardar
+  console.log("Enviando al backend2:", productsMapped);
+
+  fetch("http://localhost:3000/api/cart", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(productsMapped),
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("Carrito guardado:", data);
     })
-      .then(res => res.json())
-      .then(data => {
-        console.log("Carrito guardado:", data);
-      })
-      .catch(err => {
-        console.error("Error al guardar el carrito:", err);
-      });
-  }
+    .catch(err => {
+      console.error("Error al guardar el carrito:", err);
+    });
+}
+
 
   // Carga el carrito desde el backend
   function fetchCartFromDb() {
@@ -227,6 +247,7 @@ const cartModule = (() => {
                 price: item.price,
                 title: item.name,
                 img: item.image,
+                size_id: item.size_id            
               }));
               renderCart();
             });
@@ -261,7 +282,9 @@ document.addEventListener("DOMContentLoaded", () => {
         quantity: product.quantity,
         price: product.price,
         name: product.title,
-        image: product.img
+        image: product.img,
+        size_id: item.size_id
+
       }));
 
       const res = await fetch("http://localhost:3000/api/orders", {

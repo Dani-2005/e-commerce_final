@@ -126,42 +126,77 @@ const productModule = (() => {
   }
 
   function renderProduct() {
-    if (!contenedor || !product) return;
+  if (!contenedor || !product) return;
 
-    const imgDiv = contenedor.querySelector('.producto-img');
-    const textDiv = contenedor.querySelector('.producto-text');
+  const imgDiv = contenedor.querySelector('.producto-img');
+  const textDiv = contenedor.querySelector('.producto-text');
 
-    if (imgDiv && textDiv) {
-      imgDiv.innerHTML = `<img src="/uploads/${product.image}" alt="${product.name}">`;
+  // Usa el array de tallas del backend
+  let sizes = Array.isArray(product.sizes) ? product.sizes : [];
 
-      textDiv.innerHTML = `
-        <h2>${product.name}</h2>
-        <p>Categoría: ${product.category_name}</p>
-        <p>Sub-categoría: ${product.subcategory_name}</p>
-        <div class="precio">$${product.price}</div>
-        <button class="add-cart" data-id="${product.product_id}">Agregar al carrito</button>
-      `;
-    }
+  // Renderiza los botones de tallas
+  const sizeButtons = sizes.map((sizeObj, idx) => `
+  <button type="button" class="size-btn" data-size="${sizeObj.name}" data-size-id="${sizeObj.size_id}" ${idx === 0 ? 'data-selected="true"' : ''}>
+    ${sizeObj.name} <span style="font-size:10px;color:#888;">(${sizeObj.stock} disponibles)</span>
+  </button>
+`).join('');
+
+  if (imgDiv && textDiv) {
+    imgDiv.innerHTML = `<img src="/uploads/${product.image}" alt="${product.name}">`;
+
+    textDiv.innerHTML = `
+      <h2>${product.name}</h2>
+      <p>Categoría: ${product.category_name}</p>
+      <p>Sub-categoría: ${product.subcategory_name}</p>
+      <div class="precio">$${product.price}</div>
+      <div class="size-selector">
+        <span>Selecciona talla:</span>
+        <div class="size-btns">${sizeButtons}</div>
+      </div>
+      <button class="add-cart" data-id="${product.product_id}">Agregar al carrito</button>
+    `;
   }
 
-  function attachAddCartListener() {
-    const button = contenedor.querySelector('.add-cart');
-    if (button) {
-      button.addEventListener('click', () => {
-        if (window.cartModule && typeof window.cartModule.addToCart === 'function') {
-          const productToAdd = {
-            id: product.product_id,
-            img: `/uploads/${product.image}`,
-            title: product.name,
-            price: product.price
-          };
-          window.cartModule.addToCart(productToAdd);
-        } else {
-          console.warn('cartModule no está definido o no tiene addToCart');
-        }
-      });
-    }
+  // Evento para seleccionar talla
+  const btns = contenedor.querySelectorAll('.size-btn');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.removeAttribute('data-selected'));
+      btn.setAttribute('data-selected', 'true');
+    });
+  });
+}
+
+function attachAddCartListener() {
+  const button = contenedor.querySelector('.add-cart');
+  if (button) {
+    button.addEventListener('click', () => {
+      // Obtiene la talla seleccionada
+      const selectedBtn = contenedor.querySelector('.size-btn[data-selected="true"]');
+      const selectedSize = selectedBtn ? selectedBtn.getAttribute('data-size') : null;
+      const selectedSizeId = selectedBtn ? parseInt(selectedBtn.getAttribute('data-size-id')) : null;
+
+      if (!selectedSize) {
+        alert('Por favor selecciona una talla.');
+        return;
+      }
+
+      if (window.cartModule && typeof window.cartModule.addToCart === 'function') {
+        const productToAdd = {
+          id: product.product_id,
+          img: `/uploads/${product.image}`,
+          title: product.name,
+          price: product.price,
+          size: selectedSize,       // nombre de la talla para mostrar
+          size_id: selectedSizeId   // id numérico para backend
+        };
+        window.cartModule.addToCart(productToAdd);
+      } else {
+        console.warn('cartModule no está definido o no tiene addToCart');
+      }
+    });
   }
+}
 
   return { init };
 })();
