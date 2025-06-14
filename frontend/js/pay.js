@@ -61,7 +61,6 @@ function mostrarDireccionPrincipal(direcciones) {
         <span class="telefono">${principal.phone || ''}</span>
       </div>
     </div>
-    <button id="cambiar-direccion">Cambiar</button>
     <hr>
   `;
 }
