@@ -1,4 +1,3 @@
-// recommendedModule: muestra productos recomendados (hasta 12) por categoría o subcategoría
 const recommendedModule = (() => {
   const container = document.getElementById('recommended-container');
   let categoryId = null;
@@ -77,6 +76,8 @@ const recommendedModule = (() => {
         }
       });
     });
+
+    
 
     // Evento para redirigir al producto al hacer click en la tarjeta
     container.querySelectorAll('.recommended-product').forEach(card => {
