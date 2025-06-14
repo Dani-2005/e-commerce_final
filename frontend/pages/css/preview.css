@@ -1,3 +1,4 @@
+
 #product-preview-modal {
   position: fixed;
   top: 0;
@@ -15,14 +16,14 @@
   background-color: #fff;
   padding: 20px;
   border-radius: 8px;
-  max-width: 400px;
+  max-width: 600px;
   width: 90%;
   text-align: center;
   position: relative;
 }
 
 #product-preview-modal .modal-content img {
-  max-width: 100%;
+  max-width: 500px;
   height: auto;
   margin-bottom: 15px;
 }
@@ -59,3 +60,5 @@
   font-size: 20px;
   cursor: pointer;
 }
+
+

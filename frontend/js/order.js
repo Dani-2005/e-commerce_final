@@ -12,11 +12,20 @@ window.initOrderPage = function() {
     }
 
     // Mapeo de size_id a nombre de talla (ajusta según tus tallas reales)
-    const sizeNames = {
+      const sizeNames = {
       1: "S",
       2: "M",
       3: "L",
-      4: "XL"
+      4: "XL",
+      5: "28",
+      6: "30",
+      7: "32",
+      8: "34",
+      9: "39",
+      10: "40",
+      11: "41",
+      12: "42",
+      13: "ÚNICO"
     };
 
     let order;

@@ -208,39 +208,32 @@ exports.payOrder = async (req, res) => {
     // Calcular total (por seguridad, recalcular en backend)
     const total = items.reduce((acc, i) => acc + i.price * i.quantity, 0);
 
-    // Eliminar o comentar esta parte para no usar tabla invoices
-/*
+    // Actualizar la orden con método de pago, dirección y estado
 await new Promise((resolve, reject) => {
-  const stmt = db.prepare(`INSERT INTO invoices 
-    (order_id, user_id, metodo_pago, direccion_nombre, direccion_telefono, direccion_calle, direccion_ciudad_estado_cp, total, fecha) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`);
-  stmt.run(
-    orderId,
-    userId,
-    metodo_pago,
-    direccion.nombre || '',
-    direccion.telefono || '',
-    direccion.calle || '',
-    direccion.ciudad_estado_cp || '',
-    total,
+  db.run(
+    `UPDATE orders SET 
+      status = ?, 
+      metodo_pago = ?, 
+      direccion = ?, 
+      total = ?
+    WHERE id = ?`,
+    [
+      'completed',
+      metodo_pago,
+      JSON.stringify(direccion),  // Guardar la dirección completa como JSON string
+      total,
+      orderId
+    ],
     function(err) {
       if (err) reject(err);
       else resolve();
     }
   );
-  stmt.finalize();
 });
-*/
 
-    // Actualizar estado de la orden a pagada
-    await new Promise((resolve, reject) => {
-      db.run('UPDATE orders SET status = ? WHERE id = ?', ['completed', orderId], (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
 
-    res.status(200).json({ message: 'Orden pagada, stock actualizado y factura generada' });
+
+    res.status(200).json({ message: 'Orden pagada, stock actualizado y datos guardados correctamente' });
 
   } catch (err) {
     console.error("Error en payOrder:", err);

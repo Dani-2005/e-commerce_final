@@ -111,7 +111,6 @@ function renderProductos(productos) {
       <td>${prod.product_id}</td>
       <td>${prod.name}</td>
       <td>${prod.price.toFixed(2)}</td>
-      <td>-</td>
       <td>${prod.category_name || prod.category_id}</td>
       <td>${prod.subcategory_name || prod.subcategory_id}</td>
       <td>${prod.image ? `<img src="/uploads/${prod.image}" alt="${prod.name}" />` : ''}</td>
