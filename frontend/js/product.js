@@ -26,7 +26,7 @@ const recommendedModule = (() => {
     try {
       const allProducts = await fetchAllProducts();
 
-      const filtered = allProducts.filter(prod => 
+      const filtered = allProducts.filter(prod =>
         (categoryId && String(prod.category_id) === String(categoryId)) ||
         (subcategoryId && String(prod.subcategory_id) === String(subcategoryId))
       );
@@ -62,22 +62,15 @@ const recommendedModule = (() => {
     // Evento para agregar al carrito
     container.querySelectorAll('.add-cart-recommended').forEach(button => {
       button.addEventListener('click', (e) => {
-        e.stopPropagation(); // Evita que el click en el botón dispare el evento del card
+        e.stopPropagation();
         const id = parseInt(button.getAttribute('data-id'));
         const product = recommended.find(p => p.product_id === id);
-        if (window.cartModule && typeof window.cartModule.addToCart === 'function' && product) {
-          const productToAdd = {
-            id: product.product_id,
-            img: `/uploads/${product.image}`,
-            title: product.name,
-            price: product.price
-          };
-          window.cartModule.addToCart(productToAdd);
+        if (product) {
+          // Llama a la función expuesta desde productModule
+          productModule.showProductPreview(product);
         }
       });
     });
-
-    
 
     // Evento para redirigir al producto al hacer click en la tarjeta
     container.querySelectorAll('.recommended-product').forEach(card => {
@@ -116,8 +109,6 @@ const productModule = (() => {
         product = data;
         renderProduct();
         attachAddCartListener();
-
-        // Aquí inicializamos las recomendaciones con la categoría y subcategoría del producto
         recommendedModule.init(product.category_id, product.subcategory_id);
       })
       .catch(error => {
@@ -127,70 +118,70 @@ const productModule = (() => {
   }
 
   function renderProduct() {
-  if (!contenedor || !product) return;
+    if (!contenedor || !product) return;
 
-  const imgDiv = contenedor.querySelector('.producto-img');
-  const textDiv = contenedor.querySelector('.producto-text');
+    const imgDiv = contenedor.querySelector('.producto-img');
+    const textDiv = contenedor.querySelector('.producto-text');
 
-  // Usa el array de tallas del backend
-  let sizes = Array.isArray(product.sizes) ? product.sizes : [];
+    let sizes = Array.isArray(product.sizes) ? product.sizes : [];
+    const sizeButtons = sizes.map((sizeObj, idx) => `
+      <button type="button" class="size-btn" data-size="${sizeObj.name}" data-size-id="${sizeObj.size_id}" ${idx === 0 ? 'data-selected="true"' : ''}>
+        ${sizeObj.name} <span style="font-size:10px;color:#888;">(${sizeObj.stock} disponibles)</span>
+      </button>
+    `).join('');
+    if (imgDiv && textDiv) {
+      imgDiv.innerHTML = `<img src="/uploads/${product.image}" alt="${product.name}">`;
 
-  // Renderiza los botones de tallas
-  const sizeButtons = sizes.map((sizeObj, idx) => `
-  <button type="button" class="size-btn" data-size="${sizeObj.name}" data-size-id="${sizeObj.size_id}" ${idx === 0 ? 'data-selected="true"' : ''}>
-    ${sizeObj.name} <span style="font-size:10px;color:#888;">(${sizeObj.stock} disponibles)</span>
-  </button>
-`).join('');
+      textDiv.innerHTML = `
+        <h2>${product.name}</h2>
+        <p>Categoría: ${product.category_name}</p>
+        <p>Sub-categoría: ${product.subcategory_name}</p>
+        <div class="precio">$${product.price}</div>
+        <div class="size-selector">
+          <span>Selecciona talla:</span>
+          <div class="size-btns">${sizeButtons}</div>
+        </div>
+        <button class="add-cart" data-id="${product.product_id}">Agregar al carrito</button>
+      `;
+    }
 
-  if (imgDiv && textDiv) {
-    imgDiv.innerHTML = `<img src="/uploads/${product.image}" alt="${product.name}">`;
-
-    textDiv.innerHTML = `
-      <h2>${product.name}</h2>
-      <p>Categoría: ${product.category_name}</p>
-      <p>Sub-categoría: ${product.subcategory_name}</p>
-      <div class="precio">$${product.price}</div>
-      <div class="size-selector">
-        <span>Selecciona talla:</span>
-        <div class="size-btns">${sizeButtons}</div>
-      </div>
-      <button class="add-cart" data-id="${product.product_id}">Agregar al carrito</button>
-    `;
+    const btns = contenedor.querySelectorAll('.size-btn');
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btns.forEach(b => b.removeAttribute('data-selected'));
+        btn.setAttribute('data-selected', 'true');
+      });
+    });
   }
 
-  // Evento para seleccionar talla
-  const btns = contenedor.querySelectorAll('.size-btn');
-  btns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      btns.forEach(b => b.removeAttribute('data-selected'));
-      btn.setAttribute('data-selected', 'true');
-    });
-  });
-}
-
-function attachAddCartListener() {
+  function attachAddCartListener() {
   const button = contenedor.querySelector('.add-cart');
   if (button) {
     button.addEventListener('click', () => {
-      // Obtiene la talla seleccionada
-      const selectedBtn = contenedor.querySelector('.size-btn[data-selected="true"]');
-      const selectedSize = selectedBtn ? selectedBtn.getAttribute('data-size') : null;
-      const selectedSizeId = selectedBtn ? parseInt(selectedBtn.getAttribute('data-size-id')) : null;
-
-      if (!selectedSize) {
-        alert('Por favor selecciona una talla.');
+      // Obtener el botón de talla seleccionado
+      const selectedSizeBtn = contenedor.querySelector('.size-btn[data-selected="true"]');
+      if (!selectedSizeBtn) {
+        alert('Por favor selecciona una talla antes de agregar al carrito.');
+        return;
+      }
+      const sizeIdRaw = selectedSizeBtn.getAttribute('data-size-id');
+      const sizeId = sizeIdRaw !== null && sizeIdRaw !== '' ? parseInt(sizeIdRaw, 10) : null;
+      if (sizeId === null || isNaN(sizeId)) {
+        alert('Por favor selecciona una talla válida.');
         return;
       }
 
+      const productToAdd = {
+        id: product.product_id,
+        img: `/uploads/${product.image}`,
+        title: product.name,
+        price: product.price,
+        size_id: sizeId,
+        size: selectedSizeBtn.textContent.trim(),
+        quantity: 1
+      };
+
       if (window.cartModule && typeof window.cartModule.addToCart === 'function') {
-        const productToAdd = {
-          id: product.product_id,
-          img: `/uploads/${product.image}`,
-          title: product.name,
-          price: product.price,
-          size: selectedSize,       // nombre de la talla para mostrar
-          size_id: selectedSizeId   // id numérico para backend
-        };
         window.cartModule.addToCart(productToAdd);
       } else {
         console.warn('cartModule no está definido o no tiene addToCart');
@@ -199,10 +190,113 @@ function attachAddCartListener() {
   }
 }
 
-  return { init };
+
+  const modal = document.createElement('div');
+  modal.id = 'product-preview-modal';
+  modal.classList.add('modal');
+  modal.style.display = 'none';
+  document.body.appendChild(modal);
+
+  function showProductPreview(producto) {
+  modal.innerHTML = '';
+
+  const modalContent = document.createElement('div');
+  modalContent.classList.add('modal-content');
+
+  modalContent.innerHTML = `
+    <h2>${producto.name}</h2>
+    <img src="/uploads/${producto.image}" alt="${producto.name}">
+    <p>Precio: $${producto.price}</p>
+    <div>
+      <span>Selecciona talla:</span>
+      <div id="size-options" class="size-options"></div>
+    </div>
+    <button id="add-to-cart-confirm" class="btn-confirm">Agregar al carrito</button>
+    <button id="close-modal" class="close-btn">&times;</button>
+  `;
+
+  modal.appendChild(modalContent);
+  modal.style.display = 'flex';
+
+  const sizeOptionsDiv = modalContent.querySelector('#size-options');
+
+  console.log('Tallas del producto:', producto.sizes);
+
+  if (Array.isArray(producto.sizes) && producto.sizes.length > 0) {
+      producto.sizes.forEach(sizeObj => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = `${sizeObj.name} (${sizeObj.stock} disponibles)`;
+
+        if (typeof sizeObj.id !== 'undefined' && sizeObj.id !== null) {
+          btn.dataset.sizeId = sizeObj.id;
+        } else {
+          console.warn('id indefinido para talla:', sizeObj);
+          btn.dataset.sizeId = '';
+        }
+
+        btn.dataset.sizeName = sizeObj.name;
+        btn.classList.add('size-btn'); // clase para botones de talla
+
+        btn.addEventListener('click', () => {
+          sizeOptionsDiv.querySelectorAll('button').forEach(b => {
+            b.classList.remove('selected');
+          });
+          btn.classList.add('selected');
+          console.log("Talla seleccionada:", btn.dataset.sizeName);
+        });
+
+        sizeOptionsDiv.appendChild(btn);
+      });
+    } else {
+      sizeOptionsDiv.textContent = 'Sin tallas disponibles';
+    }
+
+  modalContent.querySelector('#close-modal').addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  modalContent.querySelector('#add-to-cart-confirm').addEventListener('click', () => {
+    const selectedBtn = sizeOptionsDiv.querySelector('button.selected');
+    if (!selectedBtn) {
+      alert('Por favor selecciona una talla.');
+      return;
+    }
+
+    const sizeIdRaw = selectedBtn.getAttribute('data-size-id');
+    const sizeId = sizeIdRaw !== null && sizeIdRaw !== '' ? parseInt(sizeIdRaw, 10) : null;
+
+    if (sizeId === null || isNaN(sizeId)) {
+      alert('Por favor selecciona una talla válida.');
+      return;
+    }
+
+    const productToAdd = {
+      id: producto.product_id,
+      img: `/uploads/${producto.image}`,
+      title: producto.name,
+      price: producto.price,
+      size_id: sizeId,
+      size: selectedBtn.getAttribute('data-size-name'),
+      quantity: 1
+    };
+    if (window.cartModule && typeof window.cartModule.addToCart === 'function') {
+      window.cartModule.addToCart(productToAdd);
+      alert('Producto agregado al carrito');
+      modal.style.display = 'none';
+    } else {
+      console.warn('cartModule no está definido o no tiene addToCart');
+    }
+  });
+}
+
+
+  return { 
+    init,
+    showProductPreview 
+  };
 })();
 
-// Inicializa todo al cargar el DOM
 document.addEventListener('DOMContentLoaded', () => {
   productModule.init();
 });
