@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Administrar Cuenta</title>
+  <style>
+    /* Estilos básicos para el modal */
+    #modal-direcciones {
+      display: none;
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      max-width: 400px;
+      max-height: 70vh;
+      overflow-y: auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+    #modal-direcciones .direccion-card {
+      cursor: pointer;
+    }
+    #cerrar-modal {
+      margin-top: 1rem;
+      cursor: pointer;
+    }
+  </style>
+  <link rel="stylesheet" href="./css/home.css">
+  <link rel="stylesheet" href="./css/user.css">
+</head>
+<body>
+  <div id="header-container"></div>
+  <div id="navbar-container"></div>
+  <div id="category-container"></div>
+  <div id="navbar-user"></div>
+<div id="segurity-container">
+  <h1>Administrar Cuenta</h1>
+
+  <div>
+    <label>Correo electrónico: </label>
+    <span id="email-text"></span>
+    <button class="edit-btn" data-field="email">Editar</button>
+    <form class="edit-form" data-field="email" style="display:none;">
+      <input type="email" name="email" required />
+      <button type="submit">Guardar</button>
+      <button type="button" class="cancel-btn">Cancelar</button>
+    </form>
+  </div>
+
+  <div>
+    <label>Usuario: </label>
+    <span id="username-text"></span>
+    <button class="edit-btn" data-field="username">Editar</button>
+    <form class="edit-form" data-field="username" style="display:none;">
+      <input type="text" name="username" required />
+      <button type="submit">Guardar</button>
+      <button type="button" class="cancel-btn">Cancelar</button>
+    </form>
+  </div>
+
+  <div>
+  <label>Contraseña: </label>
+<span id="password-text">******</span>
+<button class="edit-btn" data-field="password">Editar</button>
+
+<form class="edit-form" data-field="password" style="display:none; max-width: 320px;">
+  <div class="input-group">
+    <label for="currentPassword">Contraseña actual:</label>
+    <input type="password" name="currentPassword" id="currentPassword" required />
+    <button type="button" class="togglePassword" data-target="currentPassword" title="Mostrar contraseña">👁️</button>
+  </div>
+
+  <div class="input-group">
+    <label for="newPassword">Nueva contraseña:</label>
+    <input type="password" name="newPassword" id="newPassword" required />
+    <button type="button" class="togglePassword" data-target="newPassword" title="Mostrar contraseña">👁️</button>
+  </div>
+
+  <div class="input-group">
+    <label for="confirmPassword">Confirmar nueva contraseña:</label>
+    <input type="password" name="confirmPassword" id="confirmPassword" required />
+    <button type="button" class="togglePassword" data-target="confirmPassword" title="Mostrar contraseña">👁️</button>
+  </div>
+
+  <button type="submit">Guardar</button>
+  <button type="button" class="cancel-btn">Cancelar</button>
+</form>
+</div>
+
+  
+  
+   <script>
+    function includeHTML(id, url) {
+      return fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById(id).innerHTML = data;
+        });
+    }
+
+    Promise.all([
+      includeHTML('header-container', '../includes/header.html'),
+      includeHTML('navbar-container', '../includes/navbar.html'),
+      includeHTML('navbar-user', '../includes/user.html'),
+    ]).then(() => {
+      if (typeof initCart === 'function') initCart();
+      if (typeof initLogin === 'function') initLogin();
+    });
+  </script>
+  </div>
+
+  <script src="../js/onlyuser.js"></script>
+  <script src="../js/profile.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/login.js"></script>
+</body>
+</html>

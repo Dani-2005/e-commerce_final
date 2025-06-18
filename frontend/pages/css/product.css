@@ -470,3 +470,20 @@ ul {
   transition: background 0.3s, transform 0.2s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 }
+
+.size-btns button {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 30px;
+  border-radius: 30px;
+
+}
+.size-btn[data-selected="true"], .size-btn:hover {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.producto-text{
+  width: 30%;
+}

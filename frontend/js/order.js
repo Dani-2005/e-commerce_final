@@ -12,7 +12,7 @@ window.initOrderPage = function() {
     }
 
     // Mapeo de size_id a nombre de talla (ajusta según tus tallas reales)
-      const sizeNames = {
+    const sizeNames = {
       1: "S",
       2: "M",
       3: "L",
@@ -50,7 +50,7 @@ window.initOrderPage = function() {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${item.name}</td>
-          <td><img src="${item.image}" width="50"></td>
+          <td><img src="${item.image}" width="50" alt="Imagen de ${item.name}"></td>
           <td>${item.quantity}</td>
           <td>${talla}</td>
           <td>$${item.price.toFixed(2)}</td>
@@ -75,8 +75,34 @@ window.initOrderPage = function() {
 
     if (order.status === "pendiente") {
       payBtn.textContent = "Pagar";
-      payBtn.onclick = () => {
-        window.location.href = `/pages/pay.html?orderId=${orderId}`;
+      payBtn.onclick = async () => {
+        try {
+          // Obtener user_id desde sessionStorage
+          const user_id = sessionStorage.getItem('user_id');
+          if (!user_id) {
+            alert('Debes iniciar sesión para continuar.');
+            window.location.href = '/pages/profile.html'; // Ajusta la ruta a perfil o login
+            return;
+          }
+
+          // Consultar direcciones del usuario
+          const res = await fetch(`/api/users/profiles/${user_id}`, { credentials: 'include' });
+          if (!res.ok) throw new Error('No se pudo verificar la dirección.');
+
+          const direcciones = await res.json();
+
+          if (!direcciones || direcciones.length === 0) {
+            alert('No tienes ninguna dirección registrada. Por favor, completa tu dirección en el perfil.');
+            window.location.href = '/pages/profile.html'; // Ajusta la ruta a perfil para llenar dirección
+            return;
+          }
+
+          // Si tiene dirección, ir a pagar
+          window.location.href = `/pages/pay.html?orderId=${orderId}`;
+
+        } catch (error) {
+          alert('Error al verificar dirección: ' + error.message);
+        }
       };
     } else {
       payBtn.textContent = "Mostrar factura";

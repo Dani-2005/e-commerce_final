@@ -332,21 +332,79 @@ updateProduct: (req, res) => {
     }
 
     const sql = `
-        SELECT p.*, c.name AS category_name, s.name AS subcategory_name
+        SELECT DISTINCT p.product_id
         FROM products p
         LEFT JOIN products_category c ON p.category_id = c.category_id
         LEFT JOIN products_subcategory s ON p.subcategory_id = s.subcategory_id
+        LEFT JOIN product_sizes ps_rel ON p.product_id = ps_rel.product_id
+        LEFT JOIN product_size ps ON ps_rel.size_id = ps.size_id
         WHERE LOWER(p.name) LIKE LOWER(?)
            OR LOWER(c.name) LIKE LOWER(?)
            OR LOWER(s.name) LIKE LOWER(?)
-    `;
-    const params = [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`];
+           OR LOWER(ps.name) LIKE LOWER(?)`;
+    const params = [
+        `%${searchTerm}%`,
+        `%${searchTerm}%`,
+        `%${searchTerm}%`,
+        `%${searchTerm}%`
+    ];
 
-    db.all(sql, params, (err, rows) => {
+    db.all(sql, params, (err, productRows) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
-        res.json(rows);
+        if (productRows.length === 0) {
+            return res.json([]);
+        }
+
+        // Obtener los productos completos
+        const productIds = productRows.map(row => row.product_id);
+        const placeholders = productIds.map(() => '?').join(', ');
+
+        const productsQuery = `
+            SELECT p.*, c.name AS category_name, s.name AS subcategory_name
+            FROM products p
+            LEFT JOIN products_category c ON p.category_id = c.category_id
+            LEFT JOIN products_subcategory s ON p.subcategory_id = s.subcategory_id
+            WHERE p.product_id IN (${placeholders})
+        `;
+
+        db.all(productsQuery, productIds, (err, products) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+
+            // Obtener tallas y stock para los productos encontrados
+            const sizesQuery = `
+                SELECT ps_rel.product_id, ps.size_id, ps.name, ps_rel.stock
+                FROM product_sizes ps_rel
+                JOIN product_size ps ON ps_rel.size_id = ps.size_id
+                WHERE ps_rel.product_id IN (${placeholders})
+            `;
+
+            db.all(sizesQuery, productIds, (err, sizes) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+
+                // Agrupar tallas por producto_id
+                const sizesByProduct = {};
+                sizes.forEach(({ product_id, size_id, name, stock }) => {
+                    if (!sizesByProduct[product_id]) {
+                        sizesByProduct[product_id] = [];
+                    }
+                    sizesByProduct[product_id].push({ id: size_id, name, stock });
+                });
+
+                // Añadir tallas a cada producto
+                const productsWithSizes = products.map(product => ({
+                    ...product,
+                    sizes: sizesByProduct[product.product_id] || []
+                }));
+
+                res.json(productsWithSizes);
+            });
+        });
     });
-}
+  }
 };

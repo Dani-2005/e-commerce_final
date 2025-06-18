@@ -29,9 +29,16 @@
       cursor: pointer;
     }
   </style>
+  <link rel="stylesheet" href="./css/home.css">
+  <link rel="stylesheet" href="./css/user.css">
 </head>
 <body>
-  <h1>MI LIBRETA DE DIRECCIONES</h1>
+  <div id="header-container"></div>
+  <div id="navbar-container"></div>
+  <div id="category-container"></div>
+  <div id="navbar-user"></div>
+  <div id="address-container">
+    <h1>MI LIBRETA DE DIRECCIONES</h1>
 
   <button id="add-address-btn" onclick="window.location.href='addprofile.html'">+ AÑADIR DIRECCIÓN NUEVA</button>
 
@@ -43,8 +50,30 @@
     <div id="direcciones-list"></div>
     <button id="cerrar-modal">Cerrar</button>
   </div>
+  
+   <script>
+    function includeHTML(id, url) {
+      return fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById(id).innerHTML = data;
+        });
+    }
+
+    Promise.all([
+      includeHTML('header-container', '../includes/header.html'),
+      includeHTML('navbar-container', '../includes/navbar.html'),
+      includeHTML('navbar-user', '../includes/user.html'),
+    ]).then(() => {
+      if (typeof initCart === 'function') initCart();
+      if (typeof initLogin === 'function') initLogin();
+    });
+  </script>
+  </div>
 
   <script src="../js/onlyuser.js"></script>
   <script src="../js/profile.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/login.js"></script>
 </body>
 </html>

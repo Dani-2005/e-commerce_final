@@ -32,17 +32,78 @@ module.exports = {
         });
     },
     updateUser: (req, res) => {
-        const db = require('../db/db');
-        const id = req.params.id;
-        const { username, password, email } = req.body;
-        db.run('UPDATE users SET username = ?, password = ?, email = ? WHERE id = ?', [username, password, email, id], function(err) {
-            if (err) {
-                res.status(500).json({ error: err.message });
-                return;
-            }
-            res.json({ updatedID: id });
+  const db = require('../db/db');
+  const id = req.params.id;
+  const { username, password, email } = req.body;
+
+  // Construir dinámicamente la consulta y parámetros según campos recibidos
+  const fields = [];
+  const values = [];
+
+  if (username) {
+    fields.push('username = ?');
+    values.push(username);
+  }
+  if (password) {
+    fields.push('password = ?');
+    values.push(password);
+  }
+  if (email) {
+    fields.push('email = ?');
+    values.push(email);
+  }
+
+  if (fields.length === 0) {
+    return res.status(400).json({ error: 'No hay campos para actualizar' });
+  }
+
+  values.push(id);
+
+  const sql = `UPDATE users SET ${fields.join(', ')} WHERE id = ?`;
+
+  db.run(sql, values, function(err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ updatedID: id });
+  });
+},
+
+changePassword: (req, res) => {
+  const db = require('../db/db');
+  const id = req.params.id;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios' });
+  }
+
+  // 1. Obtener la contraseña actual almacenada (hasheada)
+  db.get('SELECT password FROM users WHERE id = ?', [id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    // 2. Validar currentPassword con la almacenada (ejemplo usando bcrypt)
+    const bcrypt = require('bcrypt');
+    bcrypt.compare(currentPassword, row.password, (err, isMatch) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!isMatch) return res.status(401).json({ error: 'Contraseña actual incorrecta' });
+
+      // 3. Hashear la nueva contraseña y actualizar
+      bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        db.run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, id], function(err) {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({ message: 'Contraseña actualizada correctamente' });
         });
-    },
+      });
+    });
+  });
+},
+
+
     deleteUser: (req, res) => {
         const db = require('../db/db');
         const id = req.params.id;

@@ -18,6 +18,7 @@
   "homepage": "https://github.com/Dani-2005/e-commerce_final#readme",
   "description": "",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "decode": "^0.3.0",

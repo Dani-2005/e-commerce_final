@@ -117,34 +117,46 @@ const productModule = (() => {
       });
   }
 
+
+
   function renderProduct() {
-    if (!contenedor || !product) return;
+  if (!contenedor || !product) return;
 
-    const imgDiv = contenedor.querySelector('.producto-img');
-    const textDiv = contenedor.querySelector('.producto-text');
+  const imgDiv = contenedor.querySelector('.producto-img');
+  const textDiv = contenedor.querySelector('.producto-text');
 
-    let sizes = Array.isArray(product.sizes) ? product.sizes : [];
-    const sizeButtons = sizes.map((sizeObj, idx) => `
-      <button type="button" class="size-btn" data-size="${sizeObj.name}" data-size-id="${sizeObj.size_id}" ${idx === 0 ? 'data-selected="true"' : ''}>
-        ${sizeObj.name} <span style="font-size:10px;color:#888;">(${sizeObj.stock} disponibles)</span>
-      </button>
-    `).join('');
-    if (imgDiv && textDiv) {
-      imgDiv.innerHTML = `<img src="/uploads/${product.image}" alt="${product.name}">`;
+  let sizes = Array.isArray(product.sizes) ? product.sizes : [];
+  const sizeButtons = sizes.map((sizeObj, idx) => `
+    <button type="button" class="size-btn" data-size="${sizeObj.name}" data-size-id="${sizeObj.size_id}" ${idx === 0 ? 'data-selected="true"' : ''}>
+      ${sizeObj.name}
+    </button>
+    <span style="font-size:10px;color:#888;">(${sizeObj.stock} disponibles)</span>
+  `).join('');
 
-      textDiv.innerHTML = `
-        <h2>${product.name}</h2>
-        <p>Categoría: ${product.category_name}</p>
-        <p>Sub-categoría: ${product.subcategory_name}</p>
-        <div class="precio">$${product.price}</div>
-        <div class="size-selector">
-          <span>Selecciona talla:</span>
-          <div class="size-btns">${sizeButtons}</div>
-        </div>
-        <button class="add-cart" data-id="${product.product_id}">Agregar al carrito</button>
-      `;
-    }
+  if (imgDiv && textDiv) {
+    imgDiv.innerHTML = `<img src="/uploads/${product.image}" alt="${product.name}">`;
 
+    textDiv.innerHTML = `
+      <h2>${product.name}</h2>
+      <p>Categoría: ${product.category_name}</p>
+      <p>Sub-categoría: ${product.subcategory_name}</p>
+      <div class="precio">$${product.price}</div>
+      <div class="size-selector">
+        <span>Selecciona talla:</span>
+        <div class="size-btns">${sizeButtons}</div>
+      </div>
+      <button class="add-cart" data-id="${product.product_id}">Agregar al carrito</button>
+      
+      <div class="info-resumida">
+        <p><strong>Envío a:</strong> Venezuela</p>
+        <p>🚚 Envío gratuito exprés para pedidos de más de $129.00<br>
+        Entrega estimada es entre 12 a 15 días</p>
+        <p>🔄 <strong>Política de devoluciones:</strong> Los artículos con venta final no se pueden devolver ni cambiar.</p>
+        <p>🛡️ <strong>Seguridad en las compras:</strong> Pagos seguros · Transporte seguro · Servicio al cliente</p>
+      </div>
+    `;
+
+    // Ahora que el HTML está cargado, seleccionamos los botones y agregamos el evento
     const btns = contenedor.querySelectorAll('.size-btn');
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -153,6 +165,8 @@ const productModule = (() => {
       });
     });
   }
+}
+
 
   function attachAddCartListener() {
   const button = contenedor.querySelector('.add-cart');
