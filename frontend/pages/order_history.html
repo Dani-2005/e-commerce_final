@@ -3,15 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Historial de Órdenes</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 2rem; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
-    th, td { border: 1px solid #ddd; padding: 0.8rem; text-align: left; }
-    th { background: #f2f2f2; }
-    a { color: #1976d2; text-decoration: none; }
-  </style>
+  <link rel="stylesheet" href="./css/home.css">
+
 </head>
 <body>
+  <div id="header-container"></div>
+  <div id="navbar-container"></div>
+  <div id="category-container"></div>
   <h2>Historial de Órdenes</h2>
   <table id="historyTable">
     <thead>
@@ -31,30 +29,26 @@
   <button class="back">volver</button>
   <script type="module" src="/js/onlyuser.js"></script>
 
+
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const res = await fetch("http://localhost:3000/api/orders/", { credentials: "include" });
-      const orders = await res.json();
-      const tbody = document.querySelector("#historyTable tbody");
-      if (!orders.length) {
-        document.getElementById("mensaje").textContent = "No tienes órdenes previas.";
-        return;
-      }
-      orders.forEach(order => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${order.id}</td>
-          <td>${new Date(order.created_at).toLocaleString()}</td>
-          <td>$${order.total.toFixed(2)}</td>
-            <td>${order.status == "pendiente" ? "Pendiente" : "Completada"}</td> 
-          <td><a href="order.html?orderId=${order.id}">Ver detalle</a></td>
-        `;
-        tbody.appendChild(tr);
-      });
-      document.querySelector(".back").addEventListener("click", () => {
-        window.location.href = "index.html";
-      });
+    function includeHTML(id, url) {
+      return fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById(id).innerHTML = data;
+        });
+    }
+
+    Promise.all([
+      includeHTML('header-container', '../includes/header.html'),
+      includeHTML('navbar-container', '../includes/navbar.html'),
+    ]).then(() => {
+      if (typeof initCart === 'function') initCart();
+      if (typeof initLogin === 'function') initLogin();
     });
   </script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/order.js"></script>
+  <script src="../js/login.js"></script>
 </body>
 </html>

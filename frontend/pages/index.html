@@ -12,8 +12,22 @@
   <div id="header-container"></div>
   <div id="navbar-container"></div>
   <div id="category-container"></div>
+<div class="most-sold-wrapper">
+  <button class="arrow left-arrow" id="mostSoldPrev">&#8592;</button>
+  <div class="most-sold-content">
+    <h2 class="most-sold-title">Productos más vendidos esta semana</h2>
+    <div id="most-sold" class="most-sold-carousel"></div>
+  </div>
+  <button class="arrow right-arrow" id="mostSoldNext">&#8594;</button>
+</div>
+
+
+
+  <div id="discounted-products"></div>
   <div class="productos" id="productos"></div>
-  <script>
+
+
+<script>
 function includeHTML(id, url) {
   return fetch(url)
     .then(response => response.text())
@@ -31,11 +45,15 @@ Promise.all([
   // Aquí inicializas el carrito y otros scripts que dependan del HTML cargado
   if (typeof initCart === 'function') initCart();
   if (typeof initLogin === 'function') initLogin();
+  if (typeof initDiscount === 'function') initDiscount();
 });
 </script>
+
 <script src="../js/cart.js"></script>
 <script src="../js/login.js"></script>
+<script src="../js/discount.js"></script>
 <script src="../js/products.js"></script>
+
 </body>
 </html>
 

@@ -3,17 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Mi Orden</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 2rem; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
-    th, td { border: 1px solid #ddd; padding: 0.8rem; text-align: left; }
-    th { background: #f2f2f2; }
-    #pagar-btn { padding: 1rem 2rem; background: #1976d2; color: #fff; border: none; border-radius: 4px; font-size: 1.1rem; cursor: pointer; }
-    #mensaje { font-weight: bold; margin-top: 1.5rem; }
-  </style>
+  <link rel="stylesheet" href="./css/home.css">
 </head>
 <body>
-
+  <div id="header-container"></div>
+  <div id="navbar-container"></div>
+  <div id="category-container"></div>
 
 <!-- Modal o sección oculta para seleccionar dirección -->
 <div id="modal-direcciones" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:1000;">
@@ -55,8 +50,27 @@
   <div id="contenidoFactura"></div>
 </div>
 
+<script>
+    function includeHTML(id, url) {
+      return fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById(id).innerHTML = data;
+        });
+    }
+
+    Promise.all([
+      includeHTML('header-container', '../includes/header.html'),
+      includeHTML('navbar-container', '../includes/navbar.html'),
+    ]).then(() => {
+      if (typeof initCart === 'function') initCart();
+      if (typeof initLogin === 'function') initLogin();
+    });
+  </script>
   <script src="../js/order.js"></script>
   <script src="/js/onlyuser.js"></script>
+  <script src="/js/login.js"></script>
+  <script src="/js/cart.js"></script>
   <script>window.initOrderPage();</script>
 </body>
 </html>

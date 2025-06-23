@@ -16,9 +16,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       const sidebarData = await sidebarRes.json();
       document.getElementById('name').textContent = sidebarData.username
       document.getElementById('email').textContent = sidebarData.email;
+      const userImgDiv = document.querySelector('.user-img');
       if (sidebarData.fotoPerfil) {
-        document.querySelector('.user-img').src = sidebarData.fotoPerfil;
+        // Si hay foto, puedes mostrarla como fondo o usar <img> si prefieres
+        userImgDiv.style.backgroundImage = `url('${sidebarData.fotoPerfil}')`;
+        userImgDiv.textContent = ''; // Borra letra si hay imagen
+      } else if (sidebarData.email) {
+        // Si no hay foto, muestra la primera letra del email
+        userImgDiv.textContent = sidebarData.email.charAt(0).toUpperCase();
+        userImgDiv.style.backgroundImage = ''; // Borra imagen si no hay
       }
+
     }
 
     // Variable global para direcciones

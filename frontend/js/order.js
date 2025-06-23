@@ -157,6 +157,33 @@ async function mostrarFactura(orderId) {
   }
 }
 
-document.getElementById('cerrarFactura').addEventListener('click', () => {
-  document.getElementById('facturaPreview').style.display = 'none';
-});
+const cerrarFacturaBtn = document.getElementById('cerrarFactura');
+if (cerrarFacturaBtn) {
+  cerrarFacturaBtn.addEventListener('click', () => {
+    document.getElementById('facturaPreview').style.display = 'none';
+  });
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+      const res = await fetch("http://localhost:3000/api/orders/", { credentials: "include" });
+      const orders = await res.json();
+      const tbody = document.querySelector("#historyTable tbody");
+      if (!orders.length) {
+        document.getElementById("mensaje").textContent = "No tienes órdenes previas.";
+        return;
+      }
+      orders.forEach(order => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${order.id}</td>
+          <td>${new Date(order.created_at).toLocaleString()}</td>
+          <td>$${order.total.toFixed(2)}</td>
+            <td>${order.status == "pendiente" ? "Pendiente" : "Completada"}</td> 
+          <td><a href="order.html?orderId=${order.id}">Ver detalle</a></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.querySelector(".back").addEventListener("click", () => {
+        window.location.href = "index.html";
+      });
+    });

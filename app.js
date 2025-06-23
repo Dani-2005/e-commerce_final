@@ -9,7 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const middleware = require('./middleware/authMiddleware');
+const discountRoutes = require('./routes/discountRoutes');
 const multer = require('multer');
 
 app.use(cors());
@@ -22,7 +22,8 @@ app.use('/api/', productRoutes);
 app.use('/api/', authRoutes);
 app.use('/api/', userRoutes);
 app.use('/api/', cartRoutes);
-app.use('/api/', orderRoutes)
+app.use('/api/', orderRoutes);
+app.use('/api/', discountRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

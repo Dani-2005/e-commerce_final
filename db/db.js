@@ -8,6 +8,7 @@ const db = new sqlite3.Database('db.db', (err) => {
 });
 
 
+
 db.serialize(() => {
   // Usuarios
   db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -151,6 +152,7 @@ function addDireccionAndMetodoPagoColumnsIfNeeded() {
 
 db.serialize(() => {
   addDireccionAndMetodoPagoColumnsIfNeeded();
+  
   
 });
 
