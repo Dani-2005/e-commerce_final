@@ -132,18 +132,25 @@ const getCart = (req, res) => {
 const getCartItems = (req, res) => {
   const cartId = req.params.cartId;
 
-  db.all(`SELECT * FROM cart_items WHERE cart_id = ?`, [cartId], (err, rows) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Error al obtener los productos del carrito' });
-    }
+  db.all(
+    `SELECT ci.*, p.discount 
+     FROM cart_items ci 
+     LEFT JOIN products p ON ci.product_id = p.product_id 
+     WHERE ci.cart_id = ?`,
+    [cartId],
+    (err, rows) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Error al obtener los productos del carrito' });
+      }
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'No hay productos en el carrito' });
-    }
+      if (rows.length === 0) {
+        return res.json([]); // Mejor devolver un array vacío
+      }
 
-    res.json(rows);
-  });
+      res.json(rows);
+    }
+  );
 };
 
 module.exports = {

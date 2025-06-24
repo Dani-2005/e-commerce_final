@@ -172,15 +172,34 @@ module.exports = {
 
 
     addProduct: (req, res) => {
-    const { name, price, category_id, subcategory_id, sizes } = req.body;
+    const { name, price, category_id, subcategory_id, discount } = req.body;
     const image = req.file ? req.file.filename : null;
 
+    // Parsear sizes si viene como string (por ejemplo, desde FormData)
+    let sizes = [];
+    if (req.body.sizes) {
+        try {
+            sizes = typeof req.body.sizes === 'string' ? JSON.parse(req.body.sizes) : req.body.sizes;
+        } catch (e) {
+            return res.status(400).json({ error: 'Formato inválido para sizes' });
+        }
+    }
+
+    // Validar y normalizar descuento
+    let discountValue = 0;
+    if (discount !== undefined && discount !== null && discount !== "") {
+        discountValue = parseInt(discount, 10);
+        if (isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
+            return res.status(400).json({ error: 'El descuento debe ser un número entre 0 y 100' });
+        }
+    }
+
     const query = `
-        INSERT INTO products (name, price, category_id, subcategory_id, image)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO products (name, price, category_id, subcategory_id, image, discount)
+        VALUES (?, ?, ?, ?, ?, ?)
     `;
 
-    db.run(query, [name, price, category_id, subcategory_id, image], function (err) {
+    db.run(query, [name, price, category_id, subcategory_id, image, discountValue], function (err) {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
@@ -208,10 +227,11 @@ module.exports = {
 },
 
 
+
     // Update product
 updateProduct: (req, res) => {
   const product_id = req.params.id;
-  const { name, price, category_id, subcategory_id } = req.body;
+  const { name, price, category_id, subcategory_id, discount } = req.body;
   const image = req.file ? req.file.filename : null;
 
   let sizes = [];
@@ -221,7 +241,6 @@ updateProduct: (req, res) => {
       console.log('Tallas parseadas:', sizes);
     } catch (e) {
       console.error('Error al parsear sizes:', e);
-
       console.error('La cadena que causó el error fue:', req.body.sizes); 
       return res.status(400).json({ error: 'Formato inválido para sizes' });
     }
@@ -229,19 +248,30 @@ updateProduct: (req, res) => {
     console.log('No se recibió campo sizes');
   }
 
+  // Validación y normalización del descuento
+  let discountValue = 0;
+  if (discount !== undefined && discount !== null && discount !== "") {
+    discountValue = parseInt(discount, 10);
+    if (isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
+      return res.status(400).json({ error: 'El descuento debe ser un número entre 0 y 100' });
+    }
+  }
+
   let query, params;
   if (image) {
     query = `
-      UPDATE products SET name = ?, price = ?, category_id = ?, subcategory_id = ?, image = ?
+      UPDATE products 
+      SET name = ?, price = ?, category_id = ?, subcategory_id = ?, image = ?, discount = ?
       WHERE product_id = ?
     `;
-    params = [name, price, category_id, subcategory_id, image, product_id];
+    params = [name, price, category_id, subcategory_id, image, discountValue, product_id];
   } else {
     query = `
-      UPDATE products SET name = ?, price = ?, category_id = ?, subcategory_id = ?
+      UPDATE products 
+      SET name = ?, price = ?, category_id = ?, subcategory_id = ?, discount = ?
       WHERE product_id = ?
     `;
-    params = [name, price, category_id, subcategory_id, product_id];
+    params = [name, price, category_id, subcategory_id, discountValue, product_id];
   }
 
   db.run(query, params, function (err) {
@@ -256,7 +286,6 @@ updateProduct: (req, res) => {
         console.error('Error DELETE product_sizes:', err);
         return res.status(500).json({ error: err.message });
       }
-      //console.log('Tallas previas eliminadas');
 
       if (Array.isArray(sizes) && sizes.length > 0) {
         const placeholders = sizes.map(() => '(?, ?, ?)').join(', ');
@@ -264,8 +293,6 @@ updateProduct: (req, res) => {
         sizes.forEach(({ size_id, stock }) => {
           paramsSizes.push(product_id, size_id, stock);
         });
-
-        //console.log('Insertando tallas con params:', paramsSizes);
 
         db.run(`INSERT INTO product_sizes (product_id, size_id, stock) VALUES ${placeholders}`, paramsSizes, function (err) {
           if (err) {
@@ -282,6 +309,7 @@ updateProduct: (req, res) => {
     });
   });
 },
+
 
     updateStock: (productId, quantity, callback) => {
     const query = `

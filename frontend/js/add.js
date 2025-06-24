@@ -1,4 +1,4 @@
-// Grupos de tallas por tipo
+// --- Grupos de tallas por tipo (igual que antes) ---
 const tallasPorCategoria = {
   ropa: [
     { id: 1, name: 'S' },
@@ -23,7 +23,6 @@ const tallasPorCategoria = {
   ]
 };
 
-// Obtiene grupo de tallas según subcategoría
 function obtenerGrupoDeTallasPorSubcategoria(subcategoryId) {
   switch (parseInt(subcategoryId, 10)) {
     case 1: case 2: case 4: case 5: case 6: case 9: case 10:
@@ -39,19 +38,13 @@ function obtenerGrupoDeTallasPorSubcategoria(subcategoryId) {
   }
 }
 
-// Renderiza tallas en el contenedor indicado
 function renderizarTallas(containerId, categoryId = null, subcategoryId = null) {
   const container = document.getElementById(containerId);
   container.innerHTML = '';
-
   let tallas = [];
-
   if (subcategoryId) {
     tallas = obtenerGrupoDeTallasPorSubcategoria(subcategoryId);
-  } else if (categoryId) {
-    tallas = [];
   }
-
   tallas.forEach(talla => {
     const label = document.createElement('label');
     label.style.marginRight = '1rem';
@@ -63,22 +56,18 @@ function renderizarTallas(containerId, categoryId = null, subcategoryId = null) 
   });
 }
 
-// Manejo dinámico de subcategorías según categoría seleccionada (formulario agregar)
+// --- Manejo dinámico de subcategorías según categoría seleccionada ---
 const categoriaSelect = document.getElementById('category');
 const subcategoriaSelect = document.getElementById('subcategory');
-const todasSubcategorias = Array.from(subcategoriaSelect.querySelectorAll('option'));
 const todasSubcategoriasOriginal = Array.from(document.querySelectorAll('#subcategory option'));
 const todasEditSubcategoriasOriginal = Array.from(document.querySelectorAll('#editSubcategory option'));
 
-
 categoriaSelect.addEventListener('change', () => {
   const categoriaSeleccionada = categoriaSelect.value;
-
   subcategoriaSelect.innerHTML = '<option value="" disabled selected>Selecciona una subcategoría</option>';
   const subcategoriasFiltradas = todasSubcategoriasOriginal.filter(opt => opt.dataset.category === categoriaSeleccionada);
   subcategoriasFiltradas.forEach(opt => subcategoriaSelect.appendChild(opt.cloneNode(true)));
   subcategoriaSelect.disabled = false;
-
   renderizarTallas('sizesContainer', null, null);
 });
 
@@ -87,7 +76,18 @@ subcategoriaSelect.addEventListener('change', () => {
   renderizarTallas('sizesContainer', null, subcategoriaSeleccionada);
 });
 
-// Cargar productos y mostrarlos
+// --- Manejo dinámico en el formulario de descuentos grupales ---
+const groupCategory = document.getElementById('groupCategory');
+const groupSubcategory = document.getElementById('groupSubcategory');
+groupCategory.addEventListener('change', () => {
+  const categoriaSeleccionada = groupCategory.value;
+  groupSubcategory.innerHTML = '<option value="">Todas</option>';
+  const subcategoriasFiltradas = todasSubcategoriasOriginal.filter(opt => !opt.value || opt.dataset.category === categoriaSeleccionada);
+  subcategoriasFiltradas.forEach(opt => groupSubcategory.appendChild(opt.cloneNode(true)));
+  groupSubcategory.disabled = !categoriaSeleccionada;
+});
+
+// --- Cargar productos y mostrarlos ---
 async function fetchProductos() {
   try {
     const res = await fetch('http://localhost:3000/api/products');
@@ -106,11 +106,17 @@ function renderProductos(productos) {
       ? prod.sizes.map(s => `${s.name} (${s.stock})`).join(', ')
       : 'Sin tallas';
 
+    // Calcula el precio final con descuento
+    const descuento = prod.discount ? parseFloat(prod.discount) : 0;
+    const precioFinal = descuento > 0 ? prod.price * (1 - descuento / 100) : prod.price;
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${prod.product_id}</td>
       <td>${prod.name}</td>
       <td>${prod.price.toFixed(2)}</td>
+      <td>${descuento ? descuento + '%' : '0%'}</td>
+      <td>${precioFinal.toFixed(2)}</td>
       <td>${prod.category_name || prod.category_id}</td>
       <td>${prod.subcategory_name || prod.subcategory_id}</td>
       <td>${prod.image ? `<img src="/uploads/${prod.image}" alt="${prod.name}" />` : ''}</td>
@@ -124,20 +130,24 @@ function renderProductos(productos) {
   });
 }
 
-// Agregar producto
+// --- Agregar producto ---
 document.getElementById('productForm').addEventListener('submit', async function(e) {
   e.preventDefault();
 
   const formData = new FormData(this);
 
+  // Añadir descuento
+  const discount = this.discount ? this.discount.value : 0;
+  formData.append('discount', discount);
+
+  // Tallas
   const sizes = [];
-  document.querySelectorAll('input[name="size_checkbox"]:checked').forEach(checkbox => {
+  document.querySelectorAll('#sizesContainer input[name="size_checkbox"]:checked').forEach(checkbox => {
     const sizeId = checkbox.value;
-    const stockInput = document.querySelector(`input[name="stock_${sizeId}"]`);
+    const stockInput = document.querySelector(`#sizesContainer input[name="stock_${sizeId}"]`);
     const stock = stockInput ? parseInt(stockInput.value, 10) || 0 : 0;
     sizes.push({ size_id: parseInt(sizeId, 10), stock });
   });
-
   formData.append('sizes', JSON.stringify(sizes));
 
   try {
@@ -148,7 +158,6 @@ document.getElementById('productForm').addEventListener('submit', async function
     const data = await res.json();
     document.getElementById('resultado').textContent =
       res.ok ? 'Producto agregado correctamente' : 'Error: ' + (data.error || 'Error desconocido');
-
     if (res.ok) {
       this.reset();
       fetchProductos();
@@ -160,7 +169,7 @@ document.getElementById('productForm').addEventListener('submit', async function
   }
 });
 
-// Borrar producto
+// --- Borrar producto ---
 async function borrarProducto(id) {
   if (!confirm('¿Seguro que deseas borrar este producto?')) return;
   try {
@@ -176,7 +185,7 @@ async function borrarProducto(id) {
   }
 }
 
-// Abrir modal editar producto y cargar datos
+// --- Abrir modal editar producto y cargar datos ---
 async function abrirEditar(id) {
   try {
     const res = await fetch(`http://localhost:3000/api/products/${id}`);
@@ -185,6 +194,7 @@ async function abrirEditar(id) {
     document.getElementById('editId').value = producto.product_id;
     document.getElementById('editName').value = producto.name;
     document.getElementById('editPrice').value = producto.price;
+    document.getElementById('editDiscount').value = producto.discount || 0;
 
     document.getElementById('editCategory').value = producto.category_id;
     filtrarSubcategoriasEdicion(producto.category_id, producto.subcategory_id);
@@ -208,20 +218,13 @@ async function abrirEditar(id) {
   }
 }
 
-// Filtrar subcategorías y actualizar tallas en edición
 function filtrarSubcategoriasEdicion(categoryId, subcategoryId = null) {
   const editSubcategory = document.getElementById('editSubcategory');
-
   editSubcategory.innerHTML = '<option value="" disabled selected>Selecciona una subcategoría</option>';
-
-  // Usar el array original para evitar que se queden sin opciones
   const filtradas = todasEditSubcategoriasOriginal.filter(opt => opt.dataset.category === String(categoryId));
-
   if (filtradas.length > 0) {
     filtradas.forEach(opt => editSubcategory.appendChild(opt.cloneNode(true)));
     editSubcategory.disabled = false;
-
-    // Asigna el valor solo después de agregar las opciones
     if (subcategoryId) {
       editSubcategory.value = subcategoryId;
     }
@@ -231,7 +234,6 @@ function filtrarSubcategoriasEdicion(categoryId, subcategoryId = null) {
     renderizarTallas('editSizesContainer', null, null);
   }
 }
-
 
 document.getElementById('editCategory').addEventListener('change', (e) => {
   filtrarSubcategoriasEdicion(e.target.value);
@@ -245,11 +247,15 @@ document.getElementById('editSubcategory').addEventListener('change', (e) => {
 
 document.getElementById('editForm').onsubmit = async function(e) {
   e.preventDefault();
-
   const formData = new FormData(this);
 
+  // Añadir descuento
+  const discount = this.discount ? this.discount.value : 0;
+  formData.append('discount', discount);
+
+  // Tallas
   const sizes = [];
-  document.querySelectorAll('#editSizesContainer input[type="checkbox"]').forEach(checkbox => {
+  document.querySelectorAll('#editSizesContainer input[name="size_checkbox"]').forEach(checkbox => {
     const sizeId = checkbox.value;
     if (checkbox.checked) {
       const stockInput = document.querySelector(`#editSizesContainer input[name="stock_${sizeId}"]`);
@@ -257,9 +263,7 @@ document.getElementById('editForm').onsubmit = async function(e) {
       sizes.push({ size_id: parseInt(sizeId, 10), stock });
     }
   });
-
   formData.append('sizes', JSON.stringify(sizes));
-
   const id = document.getElementById('editId').value;
 
   try {
@@ -268,7 +272,6 @@ document.getElementById('editForm').onsubmit = async function(e) {
       body: formData
     });
     const data = await res.json();
-
     if (res.ok) {
       document.getElementById('editModal').style.display = 'none';
       fetchProductos();
@@ -285,9 +288,41 @@ document.getElementById('closeEdit').onclick = () => {
   document.getElementById('editModal').style.display = 'none';
 };
 
+// --- Descuentos por grupo ---
+document.getElementById('groupDiscountForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const categoryId = document.getElementById('groupCategory').value;
+  const subcategoryId = document.getElementById('groupSubcategory').value;
+  const discount = document.getElementById('groupDiscount').value;
+
+  const payload = {
+    discount: parseInt(discount, 10)
+  };
+  if (categoryId) payload.category_id = categoryId;
+  if (subcategoryId) payload.subcategory_id = subcategoryId;
+
+  try {
+    const res = await fetch('http://localhost:3000/api/products/discount-group', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    const resultDiv = document.getElementById('groupDiscountResult');
+    resultDiv.style.display = 'block';
+    resultDiv.textContent = res.ok
+      ? 'Descuento aplicado correctamente'
+      : 'Error: ' + (data.error || 'Error desconocido');
+    if (res.ok) fetchProductos();
+  } catch (err) {
+    const resultDiv = document.getElementById('groupDiscountResult');
+    resultDiv.style.display = 'block';
+    resultDiv.textContent = 'Error de conexión';
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   fetchProductos();
-
   if (subcategoriaSelect.value) {
     renderizarTallas('sizesContainer', null, subcategoriaSelect.value);
   }

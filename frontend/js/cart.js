@@ -88,9 +88,15 @@ const cartModule = (() => {
   }
 
   // Agrega un producto al carrito o aumenta cantidad si ya existe
-  function addToCart(product) {
-  // product debe incluir size_id
+function addToCart(product) {
   const exists = window.productsArray.some(p => p.id === product.id && p.size_id === product.size_id);
+
+  // Calcula el precio original usando el descuento recibido
+  const discount = product.discount || 0;
+  let price_original = product.price;
+  if (discount > 0) {
+    price_original = parseFloat((product.price / (1 - discount / 100)).toFixed(2));
+  }
 
   if (exists) {
     window.productsArray = window.productsArray.map(p => {
@@ -102,7 +108,7 @@ const cartModule = (() => {
   } else {
     window.productsArray = [
       ...window.productsArray,
-      { ...product, quantity: 1 }
+      { ...product, price_original }
     ];
   }
 
@@ -140,6 +146,15 @@ function renderCart() {
 
   window.productsArray.forEach(product => {
     const sizeName = sizeNames[product.size_id] || 'N/A';
+    const tieneDescuento = product.discount && product.discount > 0;
+    const precioOriginal = product.price_original ? product.price_original : product.price;
+    const precioFinal = product.price;
+
+    const priceHtml = tieneDescuento
+      ? `<span class="precio-original" style="text-decoration:line-through;color:#888;">$${(precioOriginal * product.quantity).toFixed(2)}</span>
+         <span class="precio-descuento" style="color:red;font-weight:bold;margin-left:8px;">$${(precioFinal * product.quantity).toFixed(2)}</span>
+         <span class="porcentaje-descuento" style="color:red;margin-left:8px;">(-${product.discount}%)</span>`
+      : `<span>$${(precioFinal * product.quantity).toFixed(2)}</span>`;
 
     const div = document.createElement("div");
     div.classList.add("cart-item");
@@ -150,10 +165,10 @@ function renderCart() {
       <span class="quantity">${product.quantity}</span>
       <span>Talla: ${sizeName}</span>
       <button class="increase" data-id="${product.id}">+</button>
-      <span>$${(product.price * product.quantity).toFixed(2)}</span>
+      ${priceHtml}
     `;
     cartContainer.appendChild(div);
-    total += product.price * product.quantity;
+    total += precioFinal * product.quantity;
   });
 
   cartTotal.textContent = `$${total.toFixed(2)}`;
@@ -166,6 +181,8 @@ function renderCart() {
     btn.addEventListener("click", decreaseItem);
   });
 }
+
+
 
 
   // Aumenta la cantidad de un producto
@@ -208,7 +225,9 @@ function renderCart() {
     price: product.price,
     name: product.title,
     image: product.img,
-    size_id: product.size_id // Asegúrate de que esto exista
+    size_id: product.size_id,
+    discount: product.discount || 0
+     // Asegúrate de que esto exista
   }));
 
   // Parchar: mostrar qué se va a guardar
@@ -250,14 +269,23 @@ function renderCart() {
           })
             .then(res => res.json())
             .then(items => {
-              window.productsArray = items.map(item => ({
-                id: item.product_id,
-                quantity: item.quantity,
-                price: item.price,
-                title: item.name,
-                img: item.image,
-                size_id: item.size_id            
-              }));
+              window.productsArray = items.map(item => {
+                const discount = item.discount || 0;
+                let price_original = item.price;
+                if (discount > 0) {
+                  price_original = parseFloat((item.price / (1 - discount / 100)).toFixed(2));
+                }
+                return {
+                  id: item.product_id,
+                  quantity: item.quantity,
+                  price: item.price,
+                  price_original: price_original,
+                  title: item.name,
+                  img: item.image,
+                  size_id: item.size_id,
+                  discount: discount
+                };
+              });
               renderCart();
             });
         }

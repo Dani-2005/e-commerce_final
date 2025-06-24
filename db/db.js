@@ -64,6 +64,9 @@ db.serialize(() => {
     FOREIGN KEY (size_id) REFERENCES product_size(size_id)
   )`);
 
+
+  //db.run(`ALTER TABLE cart_items ADD COLUMN discount INTEGER DEFAULT 0;`)
+  //db.run(`ALTER TABLE order_items ADD COLUMN discount INTEGER DEFAULT 0;`);
   // Carritos
   db.run(`CREATE TABLE IF NOT EXISTS carts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

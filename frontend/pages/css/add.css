@@ -122,3 +122,94 @@ td img {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
+ /* Estilos básicos para el modal y la sección de descuentos grupales */
+    #editModal {
+      display: none; /* Oculto por defecto, se mostrará con JS */
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+    }
+    #editModal form {
+      background-color: #fefefe;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+      animation-name: animatetop;
+      animation-duration: 0.4s
+    }
+    @keyframes animatetop {
+      from {top:-300px; opacity:0}
+      to {top:0; opacity:1}
+    }
+    #editModal label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    #editModal button {
+      margin-right: 10px;
+      padding: 8px 15px;
+      cursor: pointer;
+    }
+    #productosTable img {
+      width: 50px;
+      height: auto;
+      display: block;
+      margin: auto;
+    }
+    #sizesContainer label, #editSizesContainer label {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 15px;
+        margin-bottom: 5px;
+    }
+    #sizesContainer input[type="number"], #editSizesContainer input[type="number"] {
+        width: 60px;
+        margin-left: 5px;
+    }
+    #groupDiscountForm {
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin-top: 20px;
+        background-color: #f9f9f9;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: flex-end;
+    }
+    #groupDiscountForm label {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0;
+    }
+    #groupDiscountForm select, #groupDiscountForm input[type="number"], #groupDiscountForm button {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    #groupDiscountForm button {
+        background-color: #4CAF50;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    #groupDiscountForm button:hover {
+        background-color: #45a049;
+    }
+    #groupDiscountResult {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        background-color: #eef;
+        display: none; /* Se mostrará con JS */
+    }

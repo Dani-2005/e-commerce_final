@@ -28,27 +28,20 @@ function renderMostSoldProducts(products) {
   updateArrowState();
 }
 
-function updateArrowState() {
-  // Deshabilita flechas si no hay más páginas
-  document.getElementById('mostSoldPrev').disabled = mostSoldPage === 0;
-  document.getElementById('mostSoldNext').disabled = (mostSoldPage + 1) * productsPerPage >= mostSoldProducts.length;
-}
+function updateArrowState() {}
 
-document.getElementById('mostSoldPrev').addEventListener('click', () => {
-  if (mostSoldPage > 0) {
-    mostSoldPage--;
-    renderMostSoldProductsPage();
-    updateArrowState();
-  }
-});
-
+// Solo una flecha "Next" que avanza o reinicia
 document.getElementById('mostSoldNext').addEventListener('click', () => {
-  if ((mostSoldPage + 1) * productsPerPage < mostSoldProducts.length) {
+  const totalPages = Math.ceil(mostSoldProducts.length / productsPerPage);
+  if (mostSoldPage < totalPages - 1) {
     mostSoldPage++;
-    renderMostSoldProductsPage();
-    updateArrowState();
+  } else {
+    mostSoldPage = 0; // Vuelve al inicio si está en la última página
   }
+  renderMostSoldProductsPage();
+  updateArrowState();
 });
+
 
 // Tu función de productos en descuento sigue igual
 function renderDiscountedProducts(products) {
@@ -93,3 +86,38 @@ function initDiscount() {
 }
 
 document.addEventListener('DOMContentLoaded', initDiscount);
+
+document.getElementById('groupDiscountForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const categoryId = document.getElementById('groupCategory').value;
+  const subcategoryId = document.getElementById('groupSubcategory').value;
+  const discount = document.getElementById('groupDiscount').value;
+
+  // Construye el payload
+  const payload = {
+    discount: parseInt(discount, 10)
+  };
+  if (categoryId) payload.category_id = categoryId;
+  if (subcategoryId) payload.subcategory_id = subcategoryId;
+
+  try {
+    const res = await fetch('/api/products/discount-group', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    const resultDiv = document.getElementById('groupDiscountResult');
+    resultDiv.style.display = 'block';
+    resultDiv.textContent = res.ok
+      ? 'Descuento aplicado correctamente'
+      : 'Error: ' + (data.error || 'Error desconocido');
+    if (res.ok) {
+      fetchProductos(); // Recarga la tabla de productos
+    }
+  } catch (err) {
+    const resultDiv = document.getElementById('groupDiscountResult');
+    resultDiv.style.display = 'block';
+    resultDiv.textContent = 'Error de conexión';
+  }
+});

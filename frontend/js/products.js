@@ -44,35 +44,49 @@ const productsModule = (() => {
   }
 
   function renderProducts() {
-    if (!contenedor) return;
-    contenedor.innerHTML = '';
+  if (!contenedor) return;
+  contenedor.innerHTML = '';
 
-    if (products.length === 0) {
-      contenedor.innerHTML = '<p class="no-results">No se encontraron productos en esta categoría.</p>';
-      return;
-    }
-
-    products.forEach(producto => {
-      const card = document.createElement('div');
-      card.className = 'producto';
-      card.innerHTML = `
-        <img src="/uploads/${producto.image}" alt="${producto.name}">
-        <h2>${producto.name}</h2>
-        <p>Categoría: ${producto.category_name}</p>
-        <p>Sub-categoría: ${producto.subcategory_name}</p>
-        <div class="precio">$${producto.price}</div>
-        <button class="add-cart" data-id="${producto.product_id}">Agregar al carrito</button>
-      `;
-
-      card.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('add-cart')) {
-          window.location.href = `product.html?id=${producto.product_id}`;
-        }
-      });
-
-      contenedor.appendChild(card);
-    });
+  if (products.length === 0) {
+    contenedor.innerHTML = '<p class="no-results">No se encontraron productos en esta categoría.</p>';
+    return;
   }
+
+  products.forEach(producto => {
+    const tieneDescuento = producto.discount && producto.discount > 0;
+    const precioOriginal = producto.price.toFixed(2);
+    const precioConDescuento = tieneDescuento
+      ? (producto.price * (1 - producto.discount / 100)).toFixed(2)
+      : precioOriginal;
+
+    const card = document.createElement('div');
+    card.className = 'producto';
+
+    card.innerHTML = `
+      <img src="/uploads/${producto.image}" alt="${producto.name}">
+      <h2>${producto.name}</h2>
+      <p>Categoría: ${producto.category_name}</p>
+      <p>Sub-categoría: ${producto.subcategory_name}</p>
+      <div class="precio">
+        ${tieneDescuento
+          ? `<span class="precio-original" style="text-decoration: line-through; color: black;">$${precioOriginal}</span>
+             <span class="precio-descuento" style="color: red; font-weight: bold; margin-left: 8px;">$${precioConDescuento}</span>`
+          : `<span style="color: black;">$${precioOriginal}</span>`
+        }
+      </div>
+      <button class="add-cart" data-id="${producto.product_id}">Agregar al carrito</button>
+    `;
+
+    card.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('add-cart')) {
+        window.location.href = `product.html?id=${producto.product_id}`;
+      }
+    });
+
+    contenedor.appendChild(card);
+  });
+}
+
 
   function attachAddCartListeners() {
     const buttons = contenedor.querySelectorAll('.add-cart');
@@ -97,7 +111,15 @@ const productsModule = (() => {
     modalContent.innerHTML = `
       <h2>${producto.name}</h2>
       <img src="/uploads/${producto.image}" alt="${producto.name}">
-      <p>Precio: $${producto.price}</p>
+      <div class="precio">
+        ${
+          producto.discount && producto.discount > 0
+            ? `<span class="precio-original" style="text-decoration: line-through; color: black;">$${producto.price.toFixed(2)}</span>
+              <span class="precio-descuento" style="color: red; font-weight: bold; margin-left: 8px;">$${(producto.price * (1 - producto.discount / 100)).toFixed(2)}</span>
+              <span class="porcentaje-descuento" style="color: green; margin-left: 8px;">(-${producto.discount}%)</span>`
+            : `<span style="color: black;">$${producto.price.toFixed(2)}</span>`
+        }
+      </div>
       <div>
         <span>Selecciona talla:</span>
         <div id="size-options" class="size-options"></div>
@@ -164,15 +186,23 @@ const productsModule = (() => {
         return;
       }
 
+      const tieneDescuento = producto.discount && producto.discount > 0;
+      const precioFinal = tieneDescuento 
+        ? (producto.price * (1 - producto.discount / 100)).toFixed(2)
+        : producto.price.toFixed(2);
+
       const productToAdd = {
         id: producto.product_id,
         img: `/uploads/${producto.image}`,
         title: producto.name,
-        price: producto.price,
+        price: parseFloat(precioFinal),  // Usa el precio con descuento si aplica
+        originalPrice: producto.price,   // Opcional: precio original para mostrar
+        discount: producto.discount || 0,
         size_id: sizeId,
         size: selectedBtn.dataset.sizeName,
         quantity: 1
       };
+
 
       console.log('Producto a agregar:', productToAdd);
 
