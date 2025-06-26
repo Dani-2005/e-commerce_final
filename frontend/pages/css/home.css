@@ -293,7 +293,7 @@ font-size: 1.2em;
 }
 
 .cart-item {
-  display: inline;
+  display: inline-table;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
@@ -595,10 +595,10 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
 
 .most-sold-wrapper {
   display: flex;
-  margin-left: 300px;
   align-items: center;
   position: relative;
-  width: 1150px;
+  width: 100%;
+  justify-content: center;
 }
 
 .most-sold-carousel {

@@ -1,36 +1,53 @@
 const db = require('../db/db');
-const productController = require('./productController');
+
 
 // Crear una orden
 exports.createOrder = (req, res) => {
+  console.log('BODY RECIBIDO EN ORDEN:', req.body);
   const userId = req.user.id;
+  const products = req.body.products;
+
+  if (!products || !Array.isArray(products) || products.length === 0) {
+    return res.status(400).json({ error: 'No hay productos para la orden' });
+  }
+
   db.get('SELECT * FROM carts WHERE user_id = ? AND checked_out = 0', [userId], (err, cart) => {
     if (err) return res.status(500).json({ error: 'Error al buscar el carrito' });
     if (!cart) return res.status(400).json({ error: 'No hay carrito activo' });
 
-    db.all('SELECT * FROM cart_items WHERE cart_id = ?', [cart.id], (err, items) => {
-      if (err) return res.status(500).json({ error: 'Error al obtener ítems del carrito' });
-      if (!items || items.length === 0) return res.status(400).json({ error: 'El carrito está vacío' });
+    // Calcula el total usando los productos recibidos (con descuento)
+    const total = products.reduce((sum, item) => {
+      const discount = item.discount || 0;
+      const priceWithDiscount = discount > 0 ? item.price * (1 - discount / 100) : item.price;
+      return sum + priceWithDiscount * item.quantity;
+    }, 0);
 
-      const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    db.run('INSERT INTO orders (user_id, cart_id, total) VALUES (?, ?, ?)', [userId, cart.id, total], function(err) {
+      if (err) return res.status(500).json({ error: 'Error al crear la orden' });
 
-      db.run('INSERT INTO orders (user_id, cart_id, total) VALUES (?, ?, ?)', [userId, cart.id, total], function(err) {
-        if (err) return res.status(500).json({ error: 'Error al crear la orden' });
+      const orderId = this.lastID;
 
-        const orderId = this.lastID;
+      // Insertar ítems de la orden, incluyendo size_id y discount
+      const stmt = db.prepare(
+        'INSERT INTO order_items (order_id, product_id, quantity, price, name, image, size_id, discount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+      );
+      let inserted = 0;
+      let hasError = false;
 
-        // Insertar ítems de la orden, incluyendo size_id
-        const stmt = db.prepare(
-          'INSERT INTO order_items (order_id, product_id, quantity, price, name, image, size_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        );
-        let inserted = 0;
-        let hasError = false;
-
-        for (const item of items) {
-          stmt.run(orderId, item.product_id, item.quantity, item.price, item.name, item.image, item.size_id || null, function(err) {
+      for (const item of products) {
+        stmt.run(
+          orderId,
+          item.product_id,
+          item.quantity,
+          item.price,
+          item.name,
+          item.image,
+          item.size_id || null,
+          item.discount || 0,
+          function(err) {
             if (err) hasError = true;
             inserted++;
-            if (inserted === items.length) {
+            if (inserted === products.length) {
               stmt.finalize((err) => {
                 if (err || hasError) return res.status(500).json({ error: 'Error al guardar ítems de la orden' });
 
@@ -41,9 +58,9 @@ exports.createOrder = (req, res) => {
                 });
               });
             }
-          });
-        }
-      });
+          }
+        );
+      }
     });
   });
 };
@@ -72,6 +89,23 @@ exports.getOrderById = (req, res) => {
       res.json(order);
     });
   });
+};
+
+exports.getOrderItems = (req, res) => {
+  const orderId = req.params.orderId;
+  db.all(
+    `SELECT id, order_id, product_id, quantity, name, price, image, size_id, discount
+     FROM order_items
+     WHERE order_id = ?`,
+    [orderId],
+    (err, rows) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Error al obtener los productos de la orden' });
+      }
+      res.json(rows);
+    }
+  );
 };
 
 // Eliminar una orden (puedes cambiar esto para solo actualizar el estado si lo deseas)

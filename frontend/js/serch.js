@@ -111,15 +111,22 @@ if (query) {
         resultsDiv.innerHTML = '<p>No se encontraron productos.</p>';
     } else {
         resultsDiv.innerHTML = data.map(product =>
-            `<div class="producto" data-product-id="${product.product_id}">
-                <img src="${product.image ? `/uploads/${product.image}` : '/default-product.png'}" alt="${product.name}" class="product-img">
-                <h3>${product.name}</h3>
-                <p>Categoría: ${product.category_name || ''}</p>
-                <p>Sub-categoría: ${product.subcategory_name || ''}</p>
-                <div class="precio">$${product.price}</div>
-                <button class="add-to-cart-btn" data-product-id="${product.product_id}">Agregar al carrito</button>
-            </div>`
-        ).join('');
+    `<div class="producto" data-product-id="${product.product_id}">
+        <img src="${product.image ? `/uploads/${product.image}` : '/default-product.png'}" alt="${product.name}" class="product-img">
+        <h3>${product.name}</h3>
+        <p>Categoría: ${product.category_name || ''}</p>
+        <p>Sub-categoría: ${product.subcategory_name || ''}</p>
+        <div class="precio">
+          ${
+            product.discount && product.discount > 0
+              ? `<span class="precio-original" style="text-decoration: line-through; color: black;">$${product.price.toFixed(2)}</span>
+                 <span class="precio-descuento" style="color: red; font-weight: bold; margin-left: 8px;">$${(product.price * (1 - product.discount / 100)).toFixed(2)}</span>`
+              : `<span style="color: black;">$${product.price.toFixed(2)}</span>`
+          }
+        </div>
+        <button class="add-to-cart-btn" data-product-id="${product.product_id}">Agregar al carrito</button>
+    </div>`
+).join('');
 
         // Evento para redirigir al producto individual
         resultsDiv.querySelectorAll('.producto').forEach(card => {

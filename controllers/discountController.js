@@ -1,9 +1,26 @@
 const db = require('../db/db');
 
-module.exports = {
+// Helper para obtener tallas de un producto
+function getSizesForProduct(product_id) {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT ps.size_id as id, ps.stock, s.name
+       FROM product_sizes ps
+       JOIN product_size s ON ps.size_id = s.size_id
+       WHERE ps.product_id = ?
+       ORDER BY s.name ASC`,
+      [product_id],
+      (err, sizes) => {
+        if (err) return reject(err);
+        resolve(sizes);
+      }
+    );
+  });
+}
 
+module.exports = {
   // Productos más vendidos de la semana actual
-  getMostSoldProducts: (req, res) => {
+  getMostSoldProducts: async (req, res) => {
     const query = `
       SELECT 
         oi.product_id,
@@ -29,20 +46,31 @@ module.exports = {
       LIMIT 10;
     `;
 
-    db.all(query, [], (err, products) => {
+    db.all(query, [], async (err, products) => {
       if (err) {
         console.error('Error al obtener los productos más vendidos:', err);
         return res.status(500).json({ error: 'Error al obtener los productos más vendidos' });
       }
       if (!products || products.length === 0) {
-        return res.status(200).json([]); // Devuelve array vacío si no hay resultados
+        return res.status(200).json([]);
       }
-      // Calcula el precio final con descuento si aplica
-      const productsWithFinalPrice = products.map(prod => ({
-        ...prod,
-        price_final: prod.discount ? (prod.price * (1 - prod.discount / 100)).toFixed(2) : prod.price
-      }));
-      res.json(productsWithFinalPrice);
+
+      try {
+        const productsWithSizes = await Promise.all(
+          products.map(async prod => {
+            const sizes = await getSizesForProduct(prod.product_id);
+            return {
+              ...prod,
+              price_final: prod.discount ? (prod.price * (1 - prod.discount / 100)).toFixed(2) : prod.price,
+              sizes
+            };
+          })
+        );
+        res.json(productsWithSizes);
+      } catch (error) {
+        console.error('Error al obtener las tallas:', error);
+        res.status(500).json({ error: 'Error al obtener las tallas' });
+      }
     });
   },
 
@@ -72,7 +100,6 @@ module.exports = {
       if (!products || products.length === 0) {
         return res.status(200).json([]);
       }
-      // Calcula el precio final con descuento si aplica
       const productsWithFinalPrice = products.map(prod => ({
         ...prod,
         price_final: prod.discount ? (prod.price * (1 - prod.discount / 100)).toFixed(2) : prod.price
@@ -84,15 +111,11 @@ module.exports = {
   // Aplicar descuento grupal a productos por categoría y/o subcategoría
   applyGroupDiscount: (req, res) => {
     const { category_id, subcategory_id, discount } = req.body;
-
-    // Validación básica
     if (discount === undefined || discount < 0 || discount > 100) {
       return res.status(400).json({ error: 'Descuento inválido' });
     }
-
     let query = 'UPDATE products SET discount = ? WHERE 1=1';
     const params = [discount];
-
     if (category_id) {
       query += ' AND category_id = ?';
       params.push(category_id);
@@ -101,7 +124,6 @@ module.exports = {
       query += ' AND subcategory_id = ?';
       params.push(subcategory_id);
     }
-
     db.run(query, params, function(err) {
       if (err) {
         console.error('Error al aplicar descuento grupal:', err);
@@ -110,14 +132,12 @@ module.exports = {
       res.json({ message: `Descuento aplicado a ${this.changes} productos` });
     });
   },
+  
   apliDiscount: (req, res) => {
     const { product_id, discount } = req.body;
-
-    // Validación básica
     if (discount === undefined || discount < 0 || discount > 100) {
       return res.status(400).json({ error: 'Descuento inválido' });
     }
-
     const query = 'UPDATE products SET discount = ? WHERE product_id = ?';
     db.run(query, [discount, product_id], function(err) {
       if (err) {
@@ -131,4 +151,3 @@ module.exports = {
     });
   }
 };
-

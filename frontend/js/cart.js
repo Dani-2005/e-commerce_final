@@ -43,7 +43,8 @@ const cartModule = (() => {
             price: product.price,
             name: product.title,
             image: product.img,
-            size_id: product.size_id 
+            size_id: product.size_id ,
+            discount: product.discount || 0
 
           }));
 
@@ -160,10 +161,10 @@ function renderCart() {
     div.classList.add("cart-item");
     div.innerHTML = `
       <img src="${product.img}" width="50" />
-      <span>${product.title}</span>
+      <span>${product.title}</span> <br>
       <button class="decrease" data-id="${product.id}">-</button>
       <span class="quantity">${product.quantity}</span>
-      <span>Talla: ${sizeName}</span>
+      <span>( ${sizeName} )</span>
       <button class="increase" data-id="${product.id}">+</button>
       ${priceHtml}
     `;
@@ -320,7 +321,8 @@ document.addEventListener("DOMContentLoaded", () => {
         price: product.price,
         name: product.title,
         image: product.img,
-        size_id: item.size_id
+        size_id: product.size_id,
+        discount: product.discount || 0
 
       }));
 

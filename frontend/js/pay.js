@@ -89,11 +89,24 @@ function mostrarTotal(items) {
     console.error("No se encontró el contenedor .detalle-total");
     return;
   }
-  let total = 0;
+  let totalSinDescuento = 0;
+  let totalConDescuento = 0;
   items.forEach(item => {
-    total += item.price * item.quantity;
+    const discount = item.discount || 0;
+    totalSinDescuento += item.price * item.quantity;
+    if (discount > 0) {
+      const priceWithDiscount = item.price * (1 - discount / 100);
+      totalConDescuento += priceWithDiscount * item.quantity;
+    } else {
+      totalConDescuento += item.price * item.quantity;
+    }
   });
-  container.textContent = `Total a pagar: $${total.toFixed(2)}`;
+  const ahorrado = totalSinDescuento - totalConDescuento;
+  container.innerHTML = `
+    <div>Total sin descuento: <span style="text-decoration:line-through;color:#888;">$${totalSinDescuento.toFixed(2)}</span></div>
+    <div>Total a pagar: <strong style="color:red;">$${totalConDescuento.toFixed(2)}</strong></div>
+    <div style="color:green;">Ahorrado: $${ahorrado.toFixed(2)}</div>
+  `;
 }
 
 function configurarMetodosPago() {

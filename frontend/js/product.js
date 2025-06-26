@@ -54,7 +54,14 @@ const recommendedModule = (() => {
         <h4>${product.name}</h4>
         <p>Categoría: ${product.category_name}</p>
         <p>Sub-categoría: ${product.subcategory_name}</p>
-        <div class="precio">$${product.price}</div>
+        <div class="precio">
+  ${
+    product.discount && product.discount > 0
+      ? `<span class="precio-original" style="text-decoration: line-through; color: black;">$${product.price.toFixed(2)}</span>
+         <span class="precio-descuento" style="color: red; font-weight: bold; margin-left: 8px;">$${(product.price * (1 - product.discount / 100)).toFixed(2)}</span>`
+      : `<span style="color: black;">$${product.price.toFixed(2)}</span>`
+  }
+</div>
         <button class="add-cart-recommended" data-id="${product.product_id}">Agregar al carrito</button>
       </div>
     `).join("");
@@ -137,15 +144,23 @@ const productModule = (() => {
     imgDiv.innerHTML = `<img src="/uploads/${product.image}" alt="${product.name}">`;
 
     textDiv.innerHTML = `
-      <h2>${product.name}</h2>
-      <p>Categoría: ${product.category_name}</p>
-      <p>Sub-categoría: ${product.subcategory_name}</p>
-      <div class="precio">$${product.price}</div>
-      <div class="size-selector">
-        <span>Selecciona talla:</span>
-        <div class="size-btns">${sizeButtons}</div>
-      </div>
-      <button class="add-cart" data-id="${product.product_id}">Agregar al carrito</button>
+  <h2>${product.name}</h2>
+  <p>Categoría: ${product.category_name}</p>
+  <p>Sub-categoría: ${product.subcategory_name}</p>
+  <div class="precio">
+    ${
+      product.discount && product.discount > 0
+        ? `<span class="precio-original" style="text-decoration: line-through; color: black;">$${product.price.toFixed(2)}</span>
+           <span class="precio-descuento" style="color: red; font-weight: bold; margin-left: 8px;">$${(product.price * (1 - product.discount / 100)).toFixed(2)}</span>
+           <span class="porcentaje-descuento" style="color: green; margin-left: 8px;">(-${product.discount}%)</span>`
+        : `<span style="color: black;">$${product.price.toFixed(2)}</span>`
+    }
+  </div>
+  <div class="size-selector">
+    <span>Selecciona talla:</span>
+    <div class="size-btns">${sizeButtons}</div>
+  </div>
+  <button class="add-cart" data-id="${product.product_id}">Agregar al carrito</button>
       
       <div class="info-resumida">
         <p><strong>Envío a:</strong> Venezuela</p>
