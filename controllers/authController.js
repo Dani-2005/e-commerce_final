@@ -54,7 +54,11 @@ async function login(req, res) {
 
         const token = jwt.sign({ user_id: row.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        res.status(200).json({ success: true, user_id: row.id, token, redirect: '/pages/index.html' });
+        res.json({
+          token,
+          user_id: row.id,
+          role: row.role,
+        });
     });
 }
 

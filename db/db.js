@@ -16,6 +16,7 @@ db.serialize(() => {
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
+    role TEXT DEFAULT 'users',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )`);
 
@@ -65,8 +66,12 @@ db.serialize(() => {
   )`);
 
 
-  //db.run(`ALTER TABLE cart_items ADD COLUMN discount INTEGER DEFAULT 0;`)
-  //db.run(`ALTER TABLE order_items ADD COLUMN discount INTEGER DEFAULT 0;`);
+  //db.run(`UPDATE users SET role = 'admin' WHERE email = 'admin22@gmail.com';`)
+  //db.run(`ALTER TABLE orders RENAME COLUMN comprobante TO captura_pago_movil;`);
+
+
+
+
   // Carritos
   db.run(`CREATE TABLE IF NOT EXISTS carts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

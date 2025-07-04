@@ -8,12 +8,12 @@
     .password-container {
       position: relative;
       width: 100%;
-      max-width: 300px; /* ajusta según tu diseño */
+      max-width: 300px;
     }
     .password-container input[type="password"],
     .password-container input[type="text"] {
       width: 100%;
-      padding-right: 40px; /* espacio para el botón ojo */
+      padding-right: 40px;
       box-sizing: border-box;
     }
     .toggle-password {
@@ -29,22 +29,24 @@
     .toggle-password:hover {
       color: #000;
     }
+    #result.error { color: #b00; margin-top: 10px; }
+    #result.success { color: #080; margin-top: 10px; }
   </style>
 </head>
 <body>
   <div class="container-form">
-  <h1>Login</h1>
-  <form id="loginForm">
-    <input type="text" name="username" placeholder="Usuario" required><br>
-    <div class="password-container">
-      <input type="password" name="password" placeholder="Contraseña" required id="password" />
-      <span class="toggle-password" id="togglePassword" title="Mostrar/Ocultar contraseña">&#128065;</span>
-    </div>
-    <br />
-    <button type="submit">Iniciar sesión</button>
-    <p>¿Aún no te has registrado? <a href="register.html">Registrate aqui</a></p>
-  </form>
-  <div id="result"></div>
+    <h1>Login</h1>
+    <form id="loginForm">
+      <input type="text" name="username" placeholder="Usuario" required><br>
+      <div class="password-container">
+        <input type="password" name="password" placeholder="Contraseña" required id="password" />
+        <span class="toggle-password" id="togglePassword" title="Mostrar/Ocultar contraseña">&#128065;</span>
+      </div>
+      <br />
+      <button type="submit">Iniciar sesión</button>
+      <p>¿Aún no te has registrado? <a href="register.html">Regístrate aquí</a></p>
+    </form>
+    <div id="result"></div>
   </div>
   <script src="/js/onlypublic.js"></script>
   <script>
@@ -56,26 +58,41 @@
         password: form.password.value
       };
 
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
 
-      const result = await res.json();
-      const resultDiv = document.getElementById('result');
+        const result = await res.json();
+        const resultDiv = document.getElementById('result');
 
-      if (res.ok && result.token && result.user_id) {
-        document.cookie = `jwt=${result.token}; path=/; max-age=3600`;
-        sessionStorage.setItem('user_id', result.user_id);
-        localStorage.setItem('user_id', result.user_id);
-        console.log("User ID guardado:", result.user_id);
+        if (res.ok && result.token && result.user_id) {
+          document.cookie = `jwt=${result.token}; path=/; max-age=3600`;
+          sessionStorage.setItem('user_id', result.user_id);
+          localStorage.setItem('user_id', result.user_id);
+          console.log("User ID guardado:", result.user_id);
 
-        window.location.href = result.redirect;
-      } else {
-        resultDiv.innerText = result.message;
-        resultDiv.className = res.ok ? 'success' : 'error';
+          // Redirección según el rol
+          if (result.role && result.role.toLowerCase() === 'admin') {
+            window.location.href = '/pages/indexadmin.html'; 
+          } else if (result.redirect) {
+            window.location.href = result.redirect;
+          } else {
+            window.location.href = '/pages/index.html'; 
+          }
+        } else {
+          resultDiv.innerText = result.message || 'Usuario o contraseña incorrectos';
+          resultDiv.className = 'error';
+          resultDiv.style.display = 'block';
+        }
+      } catch (error) {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerText = 'Error de conexión con el servidor';
+        resultDiv.className = 'error';
         resultDiv.style.display = 'block';
+        console.error(error);
       }
     });
 

@@ -174,11 +174,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       orders.forEach(order => {
         const tr = document.createElement("tr");
+        let estadoTexto = "";
+        if (order.status === "pendiente") {
+          estadoTexto = "Pendiente";
+        } else if (order.status === "esperando_confirmacion") {
+          estadoTexto = "Esperando confirmación";
+        } else if (order.status === "completado") {
+          estadoTexto = "Completada";
+        } else {
+          estadoTexto = order.status; // Por si hay otros estados
+        }
         tr.innerHTML = `
           <td>${order.id}</td>
           <td>${new Date(order.created_at).toLocaleString()}</td>
           <td>$${order.total.toFixed(2)}</td>
-            <td>${order.status == "pendiente" ? "Pendiente" : "Completada"}</td> 
+          <td>${estadoTexto}</td>
           <td><a href="order.html?orderId=${order.id}">Ver detalle</a></td>
         `;
         tbody.appendChild(tr);

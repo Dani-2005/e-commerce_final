@@ -2,12 +2,16 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 
+const { onlyAdmin } = require('../middleware/authMiddleware');
 const { onlyUser } = require('../middleware/authMiddleware');
 
+router.get('/admin/users-with-profiles', onlyAdmin, userController.getAllUsersWithProfiles);
+
 //aplica solo usuarios a estas rutas
+
+
 router.use('/users/profile', onlyUser);
 router.use('/users/profiles', onlyUser);
-
 router.get('/users', userController.getAllUsers);
 router.get('/users/:id', userController.getUserById);
 router.post('/users', userController.addUser);

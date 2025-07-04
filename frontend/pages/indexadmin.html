@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel Admin - Inicio</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      display: flex;
+      gap: 30px;
+    }
+    .card {
+      background: white;
+      padding: 40px 60px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      cursor: pointer;
+      text-align: center;
+      width: 180px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    .card h2 {
+      margin: 0;
+      font-size: 20px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card" onclick="irA('usersadmin.html')">
+      <h2>Administrar Usuarios</h2>
+    </div>
+    <div class="card" onclick="irA('orderadmin.html')">
+      <h2>Administrar Órdenes</h2>
+    </div>
+    <div class="card" onclick="irA('add.html')">
+      <h2>Agregar Productos</h2>
+    </div>
+  </div>
+  <script src="../js/onlyadmin.js"></script>
+  <script>
+    function irA(pagina) {
+      window.location.href = pagina;
+    }
+  </script>
+  
+</body>
+</html>

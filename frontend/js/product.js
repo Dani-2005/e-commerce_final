@@ -48,23 +48,36 @@ const recommendedModule = (() => {
       container.innerHTML = "<p>No hay productos recomendados.</p>";
       return;
     }
-    container.innerHTML = recommended.map(product => `
-      <div class="recommended-product" data-id="${product.product_id}" style="cursor:pointer;">
-        <img src="/uploads/${product.image}" alt="${product.name}">
-        <h4>${product.name}</h4>
-        <p>Categoría: ${product.category_name}</p>
-        <p>Sub-categoría: ${product.subcategory_name}</p>
-        <div class="precio">
-  ${
-    product.discount && product.discount > 0
-      ? `<span class="precio-original" style="text-decoration: line-through; color: black;">$${product.price.toFixed(2)}</span>
-         <span class="precio-descuento" style="color: red; font-weight: bold; margin-left: 8px;">$${(product.price * (1 - product.discount / 100)).toFixed(2)}</span>`
-      : `<span style="color: black;">$${product.price.toFixed(2)}</span>`
-  }
-</div>
-        <button class="add-cart-recommended" data-id="${product.product_id}">Agregar al carrito</button>
-      </div>
-    `).join("");
+    container.innerHTML = recommended.map(product => {
+      // Verificar si todas las tallas están agotadas
+      let agotado = false;
+      if (Array.isArray(product.sizes) && product.sizes.length > 0) {
+        agotado = product.sizes.every(size => size.stock <= 0);
+      } else if (typeof product.stock !== 'undefined') {
+        agotado = product.stock <= 0;
+      }
+
+      return `
+        <div class="recommended-product" data-id="${product.product_id}" style="cursor:pointer; position:relative;">
+          <div style="position:relative;">
+            <img src="/uploads/${product.image}" alt="${product.name}">
+            ${agotado ? `<span class="agotado-parche" style="position:absolute;top:10px;left:10px;background:red;color:white;padding:4px 8px;border-radius:4px;font-weight:bold;z-index:2;">AGOTADO</span>` : ''}
+          </div>
+          <h4>${product.name}</h4>
+          <p>Categoría: ${product.category_name}</p>
+          <p>Sub-categoría: ${product.subcategory_name}</p>
+          <div class="precio">
+            ${
+              product.discount && product.discount > 0
+                ? `<span class="precio-original" style="text-decoration: line-through; color: black;">$${product.price.toFixed(2)}</span>
+                   <span class="precio-descuento" style="color: red; font-weight: bold; margin-left: 8px;">$${(product.price * (1 - product.discount / 100)).toFixed(2)}</span>`
+                : `<span style="color: black;">$${product.price.toFixed(2)}</span>`
+            }
+          </div>
+          <button class="add-cart-recommended" data-id="${product.product_id}" ${agotado ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Agregar al carrito</button>
+        </div>
+      `;
+    }).join("");
 
     // Evento para agregar al carrito
     container.querySelectorAll('.add-cart-recommended').forEach(button => {
@@ -140,8 +153,21 @@ const productModule = (() => {
     <span style="font-size:10px;color:#888;">(${sizeObj.stock} disponibles)</span>
   `).join('');
 
+  // Verificar si todas las tallas están agotadas
+  let agotado = false;
+  if (Array.isArray(product.sizes) && product.sizes.length > 0) {
+    agotado = product.sizes.every(size => size.stock <= 0);
+  } else if (typeof product.stock !== 'undefined') {
+    agotado = product.stock <= 0;
+  }
+
   if (imgDiv && textDiv) {
-    imgDiv.innerHTML = `<img src="/uploads/${product.image}" alt="${product.name}">`;
+    imgDiv.innerHTML = `
+    <div style="position:relative;">
+      <img src="/uploads/${product.image}" alt="${product.name}">
+      ${agotado ? `<span class="agotado-parche" style="position:absolute;top:10px;left:10px;background:red;color:white;padding:4px 8px;border-radius:4px;font-weight:bold;z-index:2;">AGOTADO</span>` : ''}
+    </div>
+  `;
 
     textDiv.innerHTML = `
   <h2>${product.name}</h2>
@@ -197,6 +223,13 @@ const productModule = (() => {
       const sizeId = sizeIdRaw !== null && sizeIdRaw !== '' ? parseInt(sizeIdRaw, 10) : null;
       if (sizeId === null || isNaN(sizeId)) {
         alert('Por favor selecciona una talla válida.');
+        return;
+      }
+
+      // Validar stock
+      const sizeObj = Array.isArray(product.sizes) ? product.sizes.find(s => s.id === sizeId || s.size_id === sizeId) : null;
+      if (!sizeObj || sizeObj.stock <= 0) {
+        alert('Esta talla no tiene stock disponible.');
         return;
       }
 

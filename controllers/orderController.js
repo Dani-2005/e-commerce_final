@@ -111,12 +111,15 @@ exports.getOrderItems = (req, res) => {
 // Eliminar una orden (puedes cambiar esto para solo actualizar el estado si lo deseas)
 exports.deleteOrder = (req, res) => {
   const orderId = req.params.orderId;
-  const userId = req.user.id;
 
-  db.run('UPDATE orders SET estado = ? WHERE id = ? AND user_id = ?', ['pagado', orderId, userId], function(err) {
-    if (err) return res.status(500).json({ error: 'Error al actualizar el estado de la orden' });
-    if (this.changes === 0) return res.status(404).json({ error: 'Orden no encontrada' });
-    res.json({ message: 'Orden pagada con éxito' });
+  db.run('DELETE FROM order_items WHERE order_id = ?', [orderId], function(err) {
+    if (err) return res.status(500).json({ error: 'Error al borrar los ítems de la orden' });
+
+    db.run('DELETE FROM orders WHERE id = ?', [orderId], function(err) {
+      if (err) return res.status(500).json({ error: 'Error al borrar la orden' });
+      if (this.changes === 0) return res.status(404).json({ error: 'Orden no encontrada' });
+      res.json({ message: 'Orden borrada con éxito' });
+    });
   });
 };
 
@@ -145,17 +148,6 @@ exports.getOrderById = (req, res) => {
   });
 };
 
-// Eliminar una orden (puedes cambiar esto para solo actualizar el estado si lo deseas)
-exports.deleteOrder = (req, res) => {
-  const orderId = req.params.orderId;
-  const userId = req.user.id;
-
-  db.run('UPDATE orders SET estado = ? WHERE id = ? AND user_id = ?', ['pagado', orderId, userId], function(err) {
-    if (err) return res.status(500).json({ error: 'Error al actualizar el estado de la orden' });
-    if (this.changes === 0) return res.status(404).json({ error: 'Orden no encontrada' });
-    res.json({ message: 'Orden pagada con éxito' });
-  });
-};
 
 // Historial de órdenes del usuario
 exports.getOrderHistory = (req, res) => {
@@ -166,115 +158,100 @@ exports.getOrderHistory = (req, res) => {
   });
 };
 
-exports.payOrder = async (req, res) => {
-  const orderId = req.params.orderId;
-  const userId = req.user?.id;
-  const { metodo_pago, direccion } = req.body;
-
-  if (!orderId || !userId || !metodo_pago || !direccion) {
-    return res.status(400).json({ error: 'Parámetros inválidos' });
-  }
-
-  if (!db) {
-    return res.status(500).json({ error: 'Error de conexión a la base de datos' });
-  }
-
+exports.payOrder = (req, res) => {
   try {
-    // Verificar que la orden pertenece al usuario y no esté pagada
-    const order = await new Promise((resolve, reject) => {
-      db.get('SELECT * FROM orders WHERE id = ? AND user_id = ?', [orderId, userId], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+    // LOGS para depuración
+    console.log('BODY:', req.body);
+    console.log('FILE:', req.file);
+    console.log('orderId:', req.params.orderId);
 
-    if (!order) {
-      return res.status(404).json({ error: 'Orden no encontrada' });
+    const orderId = req.params.orderId;
+    const metodo_pago = req.body.metodo_pago;
+    const direccion = req.body.direccion; // Puede ser stringificado, verifica si necesitas JSON.parse
+    const total = req.body.total;
+
+    // Campos de pago móvil
+    const telefono_pago_movil = req.body.telefono_pago_movil || null;
+    const referencia_pago_movil = req.body.referencia_pago_movil || null;
+    const captura = req.file ? req.file.path : null;
+
+    // Validación de campos obligatorios para pago móvil
+    if (
+      (metodo_pago === 'pago_movil' || metodo_pago === 'efectivo_pago_movil') &&
+      (!telefono_pago_movil || !referencia_pago_movil || !captura)
+    ) {
+      return res.status(400).json({ error: 'Faltan datos obligatorios para Pago Móvil' });
     }
 
-    if (order.status === 'completed' || order.status === 'pagado') {
-      return res.status(400).json({ error: 'La orden ya ha sido pagada' });
-    }
+    // Prepara la consulta SQL y los valores
+    const sql = `
+      UPDATE orders SET
+        metodo_pago = ?,
+        direccion = ?,
+        total = ?,
+        telefono_pago_movil = ?,
+        referencia_pago_movil = ?,
+        captura_pago_movil = ?,
+        status = ?
+      WHERE id = ?
+    `;
 
-    // Obtener los ítems de la orden, incluyendo size_id
-    const items = await new Promise((resolve, reject) => {
-      db.all('SELECT product_id, quantity, price, name, size_id FROM order_items WHERE order_id = ?', [orderId], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
-
-    // Descontar stock por talla
-    for (const item of items) {
-      if (!item.size_id) {
-        return res.status(400).json({ error: `No se encontró talla para el producto ${item.name}` });
-      }
-
-      // Verificar stock actual
-      const stockRow = await new Promise((resolve, reject) => {
-        db.get(
-          'SELECT stock FROM product_sizes WHERE product_id = ? AND size_id = ?',
-          [item.product_id, item.size_id],
-          (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-          }
-        );
-      });
-
-      if (!stockRow || stockRow.stock < item.quantity) {
-        return res.status(400).json({ error: `No hay suficiente stock para el producto ${item.name} en la talla seleccionada` });
-      }
-
-      // Actualizar stock
-      await new Promise((resolve, reject) => {
-        db.run(
-          'UPDATE product_sizes SET stock = stock - ? WHERE product_id = ? AND size_id = ?',
-          [item.quantity, item.product_id, item.size_id],
-          function(err) {
-            if (err) reject(err);
-            else resolve();
-          }
-        );
-      });
-    }
-
-    // Calcular total (por seguridad, recalcular en backend)
-    const total = items.reduce((acc, i) => acc + i.price * i.quantity, 0);
-
-    // Actualizar la orden con método de pago, dirección y estado
-await new Promise((resolve, reject) => {
-  db.run(
-    `UPDATE orders SET 
-      status = ?, 
-      metodo_pago = ?, 
-      direccion = ?, 
-      total = ?
-    WHERE id = ?`,
-    [
-      'completed',
+    const values = [
       metodo_pago,
-      JSON.stringify(direccion),  // Guardar la dirección completa como JSON string
+      direccion,
       total,
+      telefono_pago_movil,
+      referencia_pago_movil,
+      captura,
+      // Cambia el estado según tu flujo
+      (metodo_pago === 'pago_movil' || metodo_pago === 'efectivo_pago_movil') ? 'esperando confirmación' : 'completed',
       orderId
-    ],
-    function(err) {
-      if (err) reject(err);
-      else resolve();
-    }
-  );
-});
+    ];
 
-
-
-    res.status(200).json({ message: 'Orden pagada, stock actualizado y datos guardados correctamente' });
+    db.run(sql, values, function(err) {
+      if (err) {
+        console.error('Error al actualizar la orden:', err);
+        return res.status(500).json({ error: 'Error al actualizar la orden' });
+      }
+      res.json({ ok: true, message: 'Orden actualizada correctamente' });
+    });
 
   } catch (err) {
-    console.error("Error en payOrder:", err);
+    console.error('Error en payOrder:', err);
     res.status(500).json({ error: err.message });
   }
 };
 
+exports.getPendingOrders = (req, res) => {
+   db.all(
+        `SELECT * FROM orders WHERE status = 'pendiente' OR status = 'esperando confirmación';`,
+        [],
+        (err, rows) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json(rows);
+        }
+    );
+};
+
+exports.confirmOrderPayment = (req, res) => {
+  const orderId = req.params.orderId;
+  const userId = req.user.id;
+
+  // Verificar si la orden existe y es del usuario
+  db.get('SELECT * FROM orders WHERE id = ? AND user_id = ?', [orderId, userId], (err, order) => {
+    if (err) return res.status(500).json({ error: 'Error al obtener la orden' });
+    if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+    if (order.status !== 'esperando confirmación') {
+      return res.status(400).json({ error: 'La orden no está en estado de espera de confirmación' });
+    }
+    // Actualizar el estado de la orden a 'pagado'
+    db.run('UPDATE orders SET status = ? WHERE id = ?', ['pagado', orderId], function(err) {
+      if (err) return res.status(500).json({ error: 'Error al confirmar el pago de la orden' });
+      if (this.changes === 0) return res.status(404).json({ error: 'Orden no encontrada' });
+      res.json({ message: 'Pago de la orden confirmado con éxito' });
+    });
+  });
+}
 
 exports.getFacturaOrden = (req, res) => {
   const orderId = req.params.orderId;

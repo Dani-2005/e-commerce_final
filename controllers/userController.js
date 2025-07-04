@@ -20,6 +20,26 @@ module.exports = {
             res.json(row);
         });
     },
+    getAllUsersWithProfiles: (req, res) => {
+    const db = require('../db/db');
+    const sql = `
+        SELECT 
+            users.id, users.username, users.email, users.role, users.created_at,
+            user_profiles.first_name, user_profiles.last_name, user_profiles.address, 
+            user_profiles.department, user_profiles.city, user_profiles.state, 
+            user_profiles.postal_code, user_profiles.phone, user_profiles.is_default
+        FROM users
+        LEFT JOIN user_profiles ON users.id = user_profiles.user_id
+    `;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json(rows);
+    });
+}
+,
     addUser: (req, res) => {
         const db = require('../db/db');
         const { username, password, email } = req.body;

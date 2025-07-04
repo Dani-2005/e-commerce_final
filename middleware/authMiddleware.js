@@ -16,6 +16,13 @@ function onlyPublic(req, res, next) {
         return res.redirect('/pages/login.html');
     });
 }
+function onlyAdmin(req, res, next) {
+    reviewCookies(req, res, (user) => {
+        if (user && user.role === 'admin') return next();
+        return res.status(403).send('Acceso solo para administradores');
+    });
+}
+
 
 function reviewCookies(req, res, callback) {
     try {
@@ -35,5 +42,5 @@ function reviewCookies(req, res, callback) {
     }
 }
 
-module.exports = { onlyUser, onlyPublic , reviewCookies };
+module.exports = { onlyUser, onlyPublic , reviewCookies , onlyAdmin };
 

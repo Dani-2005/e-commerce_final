@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Administrar Órdenes Pendientes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th {
+      background-color: #34495e;
+      color: white;
+    }
+    button {
+      padding: 6px 12px;
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    .comprobante-img {
+      max-width: 120px;
+      max-height: 120px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Órdenes Pendientes de Confirmación</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Usuario</th>
+        <th>Total</th>
+        <th>Método de Pago</th>
+        <th>Teléfono</th>
+        <th>Referencia</th>
+        <th>Comprobante</th>
+        <th>Estado</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-ordenes">
+      <tr><td colspan="9">Cargando órdenes...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    // Función para cargar las órdenes pendientes
+    async function cargarOrdenes() {
+      const tbody = document.getElementById('tabla-ordenes');
+      tbody.innerHTML = '<tr><td colspan="9">Cargando órdenes...</td></tr>';
+
+      try {
+        const res = await fetch('/api/admin/orders/pending', { credentials: 'include' });
+        if (!res.ok) throw new Error('Error al obtener órdenes');
+        const ordenes = await res.json();
+
+        if (!ordenes.length) {
+          tbody.innerHTML = '<tr><td colspan="9">No hay órdenes pendientes.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        ordenes.forEach(o => {
+          // Construye la ruta del comprobante si existe
+          let comprobanteHTML = '';
+          if (o.captura_pago_movil) {
+            // Asegúrate que en la base de datos guardas la ruta relativa, por ejemplo: '/uploads/comprobantes/archivo.jpg'
+            comprobanteHTML = `
+              <a href="${o.captura_pago_movil}" target="_blank">
+                <img src="${o.captura_pago_movil}" alt="Comprobante" class="comprobante-img" />
+              </a>
+            `;
+          } else {
+            comprobanteHTML = '<span>No enviado</span>';
+          }
+
+          tbody.innerHTML += `
+            <tr>
+              <td>${o.id}</td>
+              <td>${o.user_id || '-'}</td>
+              <td>$${Number(o.total).toFixed(2)}</td>
+              <td>${o.metodo_pago || '-'}</td>
+              <td>${o.telefono_pago_movil || '-'}</td>
+              <td>${o.referencia_pago_movil || '-'}</td>
+              <td>${comprobanteHTML}</td>
+              <td>${o.status || '-'}</td>
+              <td>
+                <button onclick="confirmarPago(${o.id}, this)">Confirmar Pago</button>
+                <button onclick="borrarOrden(${o.id}, this)" style="background:#e74c3c;margin-left:5px;">Borrar</button>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="9">Error cargando órdenes: ${error.message}</td></tr>`;
+      }
+    }
+
+    // Función para confirmar el pago de una orden
+    async function confirmarPago(orderId, btn) {
+      if (!confirm('¿Confirmar el pago de esta orden?')) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Confirmando...';
+
+      try {
+        const res = await fetch(`/api/orders/${orderId}/confirmar`, {
+          method: 'PUT',
+          credentials: 'include',
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Error al confirmar pago');
+        }
+
+        alert('Pago confirmado correctamente');
+        cargarOrdenes();
+      } catch (error) {
+        alert('Error: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = 'Confirmar Pago';
+      }
+    }
+
+    // Función para borrar una orden
+    async function borrarOrden(orderId, btn) {
+      if (!confirm('¿Seguro que deseas borrar esta orden?')) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Borrando...';
+
+      try {
+        const res = await fetch(`/api/orders/${orderId}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Error al borrar la orden');
+        }
+
+        alert('Orden borrada correctamente');
+        cargarOrdenes();
+      } catch (error) {
+        alert('Error: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = 'Borrar';
+      }
+    }
+
+    // Carga las órdenes al cargar la página
+    window.onload = cargarOrdenes;
+  </script>
+
+<script src="../js/onlyadmin.js"></script>
+</body>
+</html>

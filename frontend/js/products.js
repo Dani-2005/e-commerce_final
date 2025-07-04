@@ -59,11 +59,22 @@ const productsModule = (() => {
       ? (producto.price * (1 - producto.discount / 100)).toFixed(2)
       : precioOriginal;
 
+    // Verificar si todas las tallas están agotadas
+    let agotado = false;
+    if (Array.isArray(producto.sizes) && producto.sizes.length > 0) {
+      agotado = producto.sizes.every(size => size.stock <= 0);
+    } else if (typeof producto.stock !== 'undefined') {
+      agotado = producto.stock <= 0;
+    }
+
     const card = document.createElement('div');
     card.className = 'producto';
 
     card.innerHTML = `
-      <img src="/uploads/${producto.image}" alt="${producto.name}">
+      <div class="img-container" style="position:relative;">
+        <img src="/uploads/${producto.image}" alt="${producto.name}">
+        ${agotado ? `<span class="agotado-parche" style="position:absolute;top:10px;left:10px;background:red;color:white;padding:4px 8px;border-radius:4px;font-weight:bold;z-index:2;">AGOTADO</span>` : ''}
+      </div>
       <h2>${producto.name}</h2>
       <p>Categoría: ${producto.category_name}</p>
       <p>Sub-categoría: ${producto.subcategory_name}</p>
@@ -74,7 +85,7 @@ const productsModule = (() => {
           : `<span style="color: black;">$${precioOriginal}</span>`
         }
       </div>
-      <button class="add-cart" data-id="${producto.product_id}">Agregar al carrito</button>
+      <button class="add-cart" data-id="${producto.product_id}" ${agotado ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Agregar al carrito</button>
     `;
 
     card.addEventListener('click', (e) => {
@@ -185,7 +196,14 @@ const productsModule = (() => {
         alert('Por favor selecciona una talla válida.');
         return;
       }
-
+      
+      // Validar stock
+      const sizeObj = producto.sizes.find(s => s.id === sizeId);
+      if (!sizeObj || sizeObj.stock <= 0) {
+        alert('Esta talla no tiene stock disponible.');
+        return;
+      }
+    
       const tieneDescuento = producto.discount && producto.discount > 0;
       const precioFinal = tieneDescuento 
         ? (producto.price * (1 - producto.discount / 100)).toFixed(2)

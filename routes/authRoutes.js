@@ -23,4 +23,17 @@ router.get('/check', (req, res) => {
     });
 });
 
+router.get('/auth/check-admin', (req, res) => {
+    reviewCookies(req, res, (user) => {
+        if (user && user.role === 'admin') {
+            res.json({ authenticated: true, isAdmin: true, user });
+        } else if (user) {
+            res.json({ authenticated: true, isAdmin: false, user });
+        } else {
+            res.json({ authenticated: false, isAdmin: false });
+        }
+    });
+});
+
+
 module.exports = router;

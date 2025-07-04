@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Usuarios con Perfil</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7f9fa;
+            margin: 40px;
+        }
+        h1 {
+            color: #333;
+        }
+        .btn-cargar {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 18px;
+        }
+        .btn-cargar:hover {
+            background: #0056b3;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        th, td {
+            border: 1px solid #e3e3e3;
+            padding: 8px 10px;
+            text-align: left;
+        }
+        th {
+            background: #f2f5f7;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background: #f9fbfc;
+        }
+        tr:hover {
+            background: #e6f0fa;
+        }
+        .no-perfil {
+            color: #bbb;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>Usuarios con Perfil</h1>
+    <button class="btn-cargar" onclick="cargarUsuariosConPerfil()">Cargar usuarios y perfiles</button>
+    <table id="tablaUsuariosPerfil">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Creado</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Dirección</th>
+                <th>Departamento</th>
+                <th>Ciudad</th>
+                <th>Estado</th>
+                <th>Código Postal</th>
+                <th>Teléfono</th>
+                <th>Default</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script>
+        function cargarUsuariosConPerfil() {
+            fetch('/api/admin/users-with-profiles')
+                .then(response => {
+                    if (!response.ok) throw new Error('Error en la respuesta del servidor: ' + response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    const tbody = document.querySelector('#tablaUsuariosPerfil tbody');
+                    tbody.innerHTML = '';
+                    if (!Array.isArray(data) || data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="14">No hay usuarios con perfil</td></tr>';
+                        return;
+                    }
+                    data.forEach(u => {
+                        // Si no tiene perfil, poner clase especial
+                        const sinPerfil = !u.first_name && !u.last_name && !u.address && !u.city && !u.state && !u.phone;
+                        tbody.innerHTML += `
+                            <tr${sinPerfil ? ' class="no-perfil"' : ''}>
+                                <td>${u.id}</td>
+                                <td>${u.username || ''}</td>
+                                <td>${u.email || ''}</td>
+                                <td>${u.role || ''}</td>
+                                <td>${u.created_at || ''}</td>
+                                <td>${u.first_name || ''}</td>
+                                <td>${u.last_name || ''}</td>
+                                <td>${u.address || ''}</td>
+                                <td>${u.department || ''}</td>
+                                <td>${u.city || ''}</td>
+                                <td>${u.state || ''}</td>
+                                <td>${u.postal_code || ''}</td>
+                                <td>${u.phone || ''}</td>
+                                <td>${u.is_default === 1 ? 'Sí' : (u.is_default === 0 ? 'No' : '')}</td>
+                            </tr>
+                        `;
+                    });
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                    console.error(error);
+                });
+        }
+        // Opcional: cargar automáticamente al abrir la página
+        cargarUsuariosConPerfil();
+    </script>
+    <script src="../js/onlyadmin.js"></script>
+</body>
+</html>

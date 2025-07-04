@@ -117,10 +117,9 @@ function configurarMetodosPago() {
   }
   divPay.innerHTML = `
     <h3>Métodos de Pago</h3>
-    <button data-metodo="paypal">PayPal</button>
-    <button data-metodo="zinli">Zinli</button>
-    <button data-metodo="tarjeta">Tarjeta de Crédito</button>
-    <button data-metodo="gpa">GPA</button>
+    <button data-metodo="pago_movil">Pago Móvil</button>
+    <button data-metodo="efectivo">Efectivo</button>
+    <button data-metodo="efectivo_pago_movil">Efectivo y Pago Móvil</button>
   `;
 
   let metodoSeleccionado = null;
@@ -129,11 +128,37 @@ function configurarMetodosPago() {
       metodoSeleccionado = btn.getAttribute('data-metodo');
       divPay.querySelectorAll('button').forEach(b => b.style.backgroundColor = '');
       btn.style.backgroundColor = '#1976d2';
+
+      // Mostrar formulario si corresponde
+      mostrarFormularioPago(metodoSeleccionado);
     });
   });
 
   window.metodoSeleccionado = () => metodoSeleccionado;
 }
+
+function mostrarFormularioPago(metodo) {
+  let formContainer = document.getElementById('formulario-pago-movil');
+  if (!formContainer) {
+    formContainer = document.createElement('div');
+    formContainer.id = 'formulario-pago-movil';
+    document.querySelector('.form-pay').appendChild(formContainer);
+  }
+  if (metodo === 'pago_movil' || metodo === 'efectivo_pago_movil') {
+    formContainer.innerHTML = `
+      <h4>Detalles de Pago Móvil</h4>
+      <label>Número de Teléfono:</label><br>
+      <input type="text" id="telefono-pago-movil" placeholder="Ej: 04141234567"><br>
+      <label>Número de Referencia:</label><br>
+      <input type="text" id="referencia-pago-movil" placeholder="Referencia bancaria"><br>
+      <label>Imagen del Capture:</label><br>
+      <input type="file" id="capture-pago-movil" name="captura_pago_movil" accept="image/*"><br>
+    `;
+  } else {
+    formContainer.innerHTML = '';
+  }
+}
+
 
 function configurarBotonPagar(orderId) {
   const divPagar = document.querySelector('.div-pagar');
@@ -144,64 +169,76 @@ function configurarBotonPagar(orderId) {
   divPagar.innerHTML = `<button id="finalizar-pago">Finalizar Compra</button>`;
 
   document.getElementById('finalizar-pago').addEventListener('click', async () => {
-    const metodo = window.metodoSeleccionado ? window.metodoSeleccionado() : null;
-    if (!metodo) {
-      alert('Por favor selecciona un método de pago.');
+  const metodo = window.metodoSeleccionado ? window.metodoSeleccionado() : null;
+  if (!metodo) {
+    alert('Por favor selecciona un método de pago.');
+    return;
+  }
+
+  let datosPagoMovil = {};
+  if (metodo === 'pago_movil' || metodo === 'efectivo_pago_movil') {
+    datosPagoMovil.telefono = document.getElementById('telefono-pago-movil').value;
+    datosPagoMovil.referencia = document.getElementById('referencia-pago-movil').value;
+    datosPagoMovil.capture = document.getElementById('capture-pago-movil').files[0];
+    if (!datosPagoMovil.telefono || !datosPagoMovil.referencia || !datosPagoMovil.capture) {
+      alert('Por favor completa todos los campos de Pago Móvil.');
       return;
     }
+  }
 
-    try {
-      // Obtener datos de la orden y dirección
-      const orderRes = await fetch(`http://localhost:3000/api/orders/${orderId}`, { credentials: 'include' });
-      if (!orderRes.ok) throw new Error('Error al obtener la orden');
-      const order = await orderRes.json();
+  try {
+    // Obtener datos de la orden y dirección
+    const orderRes = await fetch(`/api/orders/${orderId}`, { credentials: 'include' });
+    if (!orderRes.ok) throw new Error('Error al obtener la orden');
+    const order = await orderRes.json();
 
-      let user_id = sessionStorage.getItem('user_id');
-      const perfRes = await fetch(`/api/users/profiles/${user_id}`, { credentials: 'include' });
-      if (!perfRes.ok) throw new Error('Error al obtener direcciones');
-      const direcciones = await perfRes.json();
-      const direccion = direcciones[0];
+    let user_id = sessionStorage.getItem('user_id');
+    const perfRes = await fetch(`/api/users/profiles/${user_id}`, { credentials: 'include' });
+    if (!perfRes.ok) throw new Error('Error al obtener direcciones');
+    const direcciones = await perfRes.json();
+    const direccion = direcciones[0];
 
-      // Calcular total
-      let total = 0;
-      order.items.forEach(item => {
-        total += item.price * item.quantity;
-      });
+    // Calcular total
+    let total = 0;
+    order.items.forEach(item => {
+      total += item.price * item.quantity;
+    });
 
-      // Crear objeto factura
-      const factura = {
-        direccion: direccion,
-        metodo_pago: metodo,
-        productos: order.items,
-        total: total
-      };
+    // Crear FormData
+    const formData = new FormData();
+    formData.append('metodo_pago', metodo);
+    formData.append('direccion', JSON.stringify({
+      nombre: direccion.first_name + ' ' + direccion.last_name,
+      telefono: direccion.phone,
+      calle: direccion.address + (direccion.department ? ' ' + direccion.department : ''),
+      ciudad_estado_cp: `${direccion.city} ${direccion.state} ${direccion.postal_code}`
+    }));
+    formData.append('total', total);
 
-    // Enviar datos al backend para actualizar la orden y guardar método de pago y dirección
-      const res = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-        metodo_pago: metodo,
-        direccion: {
-            nombre: direccion.first_name + ' ' + direccion.last_name,
-            telefono: direccion.phone,
-            calle: direccion.address + (direccion.department ? ' ' + direccion.department : ''),
-            ciudad_estado_cp: `${direccion.city} ${direccion.state} ${direccion.postal_code}`
-        }
-        })
-      });
-
-      if (!res.ok) throw new Error('Error al actualizar la orden con el pago');
-
-      alert('Pago realizado con éxito. Gracias por tu compra.');
-      window.location.href = '/pages/order_history.html';
-
-    } catch (error) {
-      alert('Error al procesar el pago: ' + error.message);
+    // Si es pago móvil, agrega los campos extra
+    if (metodo === 'pago_movil' || metodo === 'efectivo_pago_movil') {
+      formData.append('telefono_pago_movil', datosPagoMovil.telefono);
+      formData.append('referencia_pago_movil', datosPagoMovil.referencia);
+      formData.append('captura_pago_movil', datosPagoMovil.capture);
     }
-  });
-}
+
+    // Enviar al backend
+    const res = await fetch(`/api/orders/${orderId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      body: formData // No pongas headers de Content-Type, el navegador lo maneja
+    });
+
+    if (!res.ok) throw new Error('Error al actualizar la orden con el pago');
+
+    alert('Pago realizado con éxito. Gracias por tu compra.');
+    window.location.href = '/pages/order_history.html';
+
+  } catch (error) {
+    alert('Error al procesar el pago: ' + error.message);
+  }
+});
+
 
 // Modal para mostrar la factura
 function mostrarFactura(factura) {
@@ -234,4 +271,5 @@ function mostrarFactura(factura) {
     document.getElementById('modal-factura').remove();
     // Aquí puedes continuar con el pago si lo deseas
   };
+}
 }
